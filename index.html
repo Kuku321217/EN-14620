@@ -413,7 +413,10 @@
   </div>
   <div style="margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <span class="ay-badge">Developed by :AY</span>
-    <!-- Save/Load buttons removed - no local saving allowed -->
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+      <button class="btn btn-save" id="mainSaveBtn" onclick="saveAllInputs()" title="Save all inputs to cloud — will auto-load next time">💾 Save Inputs</button>
+      <span id="globalSaveStatus" style="font-size:10px;color:var(--muted)">(Not saved yet)</span>
+    </div>
     <button class="btn btn-word" onclick="exportWord()">📄 Export Word</button>
     <button class="btn btn-pdf" onclick="exportPDF()">📑 Export PDF</button>
     <button class="btn btn-print" onclick="window.print()">🖨 Print Report</button>
@@ -452,8 +455,8 @@
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <div class="page" id="page0">
 
-  <div class="info-banner" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);margin-bottom:16px">
-    🔒 <strong>Security Notice:</strong> This calculator does not save data locally. All work is session-based only. Use <strong>Export Word</strong>, <strong>Export PDF</strong>, or <strong>Print</strong> to preserve your calculations. Data will be lost when you close the browser or refresh the page.
+  <div class="info-banner" style="background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.3);margin-bottom:16px">
+    💾 <strong>Cloud Save Active:</strong> Use the <strong>💾 Save Inputs</strong> button in the header to save all your inputs to the cloud. Your last saved inputs will be automatically restored the next time you open this calculator.
   </div>
 
   <div class="section">
@@ -3066,16 +3069,38 @@ BC1-BC3: 0.6 + 18/Ω² − 0.3/Ω³</div>
           <input id="cap_LLL" type="number" value="1900" oninput="computeCapacity()">
           <span class="unit">mm</span>
         </div>
+
+        <!-- OLE Freeboard: auto-calc + user override -->
         <div class="field">
-          <label>Seismic Freeboard – OLE</label>
-          <input id="cap_FB_OLE" type="number" step="0.01" value="579.64" oninput="computeCapacity()">
-          <span class="unit">mm</span>
+          <label>🔗 Seismic Freeboard – OLE (Auto-Calculated)</label>
+          <input id="cap_FB_OLE_auto" type="text" readonly value="—"
+                 style="background:var(--readonly-bg);border:1px solid var(--readonly-border);border-left:3px solid var(--readonly-clr);border-radius:7px;padding:9px 12px 9px 10px;color:var(--readonly-clr);font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;cursor:default;">
+          <span class="unit" style="color:var(--readonly-clr);font-size:11px">mm — 0.84 × R × Ac_OBE</span>
         </div>
         <div class="field">
-          <label>Seismic Freeboard – CLE</label>
-          <input id="cap_FB_CLE" type="number" step="0.01" value="1394.88" oninput="computeCapacity()">
-          <span class="unit">mm</span>
+          <label>✎ Seismic Freeboard – OLE (User Input / Override)</label>
+          <input id="cap_FB_OLE" type="number" step="0.01" placeholder="Leave blank = use auto" oninput="computeCapacity()">
+          <span class="unit">mm — overrides auto-calc if entered; double-click to clear</span>
         </div>
+
+        <!-- CLE Freeboard: auto-calc + user override -->
+        <div class="field">
+          <label>🔗 Seismic Freeboard – CLE (Auto-Calculated)</label>
+          <input id="cap_FB_CLE_auto" type="text" readonly value="—"
+                 style="background:var(--readonly-bg);border:1px solid var(--readonly-border);border-left:3px solid var(--readonly-clr);border-radius:7px;padding:9px 12px 9px 10px;color:var(--readonly-clr);font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;cursor:default;">
+          <span class="unit" style="color:var(--readonly-clr);font-size:11px">mm — 0.84 × R × Ac_SSE</span>
+        </div>
+        <div class="field">
+          <label>✎ Seismic Freeboard – CLE (User Input / Override)</label>
+          <input id="cap_FB_CLE" type="number" step="0.01" placeholder="Leave blank = use auto" oninput="computeCapacity()">
+          <span class="unit">mm — overrides auto-calc if entered; double-click to clear</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding:10px;background:rgba(0,201,167,0.08);border:1px solid rgba(0,201,167,0.2);border-radius:6px;font-size:12px;color:var(--muted)">
+        💡 <strong>Seismic Freeboard:</strong> Auto-calculated per EN 1998-4 Annex A.4 using δ<sub>s</sub> = 0.84·R·A<sub>c</sub>.
+        OBE uses 5%-damped convective acceleration (A<sub>c,OBE</sub>) from the Seismic tab.
+        SSE uses 0.5%-damped value (A<sub>c,SSE</sub>·η, η=√(10/5.5)).
+        Enter a value in the <em>User Input</em> field to override; leave blank to use the auto-calculated value.
       </div>
     </div>
   </div>
@@ -3093,8 +3118,12 @@ BC1-BC3: 0.6 + 18/Ω² − 0.3/Ω³</div>
         <thead><tr><th>Parameter</th><th>Symbol</th><th>Formula</th><th>Value</th><th>Unit</th></tr></thead>
         <tbody>
           <tr><td class="label">LLL (Min Normal Operating Level)</td><td class="sym">LLL</td><td class="formula">User input</td><td class="value"><span id="cap_LLL_disp">1900.00</span></td><td>mm</td></tr>
-          <tr><td class="label">Seismic Freeboard – OLE</td><td class="sym">FB<sub>OLE</sub></td><td class="formula">From Seismic tab (3_ Seismic H106)</td><td class="value"><span id="cap_FBOLE_disp">579.64</span></td><td>mm</td></tr>
-          <tr><td class="label">Seismic Freeboard – CLE</td><td class="sym">FB<sub>CLE</sub></td><td class="formula">From Seismic tab (3_ Seismic H107)</td><td class="value"><span id="cap_FBCLE_disp">1394.88</span></td><td>mm</td></tr>
+          <tr><td class="label">Seismic Freeboard – OLE (Auto-Calc)</td><td class="sym">δ<sub>s,OLE</sub></td><td class="formula">0.84 × R × A<sub>c,OBE</sub> (EN 1998-4 A.4, 5% damp)</td><td class="value" style="color:var(--readonly-clr)"><span id="cap_FBOLE_auto_disp">—</span></td><td>mm</td></tr>
+          <tr><td class="label">Seismic Freeboard – OLE (User Input)</td><td class="sym">FB<sub>OLE,user</sub></td><td class="formula">User override (blank = use auto)</td><td class="value" style="color:var(--input-clr)"><span id="cap_FBOLE_user_disp">—</span></td><td>mm</td></tr>
+          <tr style="background:rgba(0,201,167,0.06)"><td class="label"><strong>Seismic Freeboard – OLE (Governing)</strong></td><td class="sym"><strong>FB<sub>OLE</sub></strong></td><td class="formula">User input if provided, else auto-calc</td><td class="value"><strong><span id="cap_FBOLE_disp">—</span></strong></td><td>mm</td></tr>
+          <tr><td class="label">Seismic Freeboard – CLE (Auto-Calc)</td><td class="sym">δ<sub>s,CLE</sub></td><td class="formula">0.84 × R × A<sub>c,SSE</sub> × η (EN 1998-4 A.4, 0.5% damp)</td><td class="value" style="color:var(--readonly-clr)"><span id="cap_FBCLE_auto_disp">—</span></td><td>mm</td></tr>
+          <tr><td class="label">Seismic Freeboard – CLE (User Input)</td><td class="sym">FB<sub>CLE,user</sub></td><td class="formula">User override (blank = use auto)</td><td class="value" style="color:var(--input-clr)"><span id="cap_FBCLE_user_disp">—</span></td><td>mm</td></tr>
+          <tr style="background:rgba(0,201,167,0.06)"><td class="label"><strong>Seismic Freeboard – CLE (Governing)</strong></td><td class="sym"><strong>FB<sub>CLE</sub></strong></td><td class="formula">User input if provided, else auto-calc</td><td class="value"><strong><span id="cap_FBCLE_disp">—</span></strong></td><td>mm</td></tr>
           <tr style="background:rgba(74,124,255,0.04)"><td class="label">Coeff. Linear Expansion – from Tab 1</td><td class="sym">α</td><td class="formula">Tab 1 → C33</td><td class="value"><span id="cap_alpha_disp">0.0000090</span></td><td>/°C</td></tr>
           <tr style="background:rgba(74,124,255,0.04)"><td class="label">Design Temperature – from Tab 1</td><td class="sym">T<sub>des</sub></td><td class="formula">Tab 1 → C23</td><td class="value"><span id="cap_Tdes_disp">-196.0</span></td><td>°C</td></tr>
           <tr style="background:rgba(74,124,255,0.04)"><td class="label">Ambient Temperature – from Tab 1</td><td class="sym">T<sub>amb</sub></td><td class="formula">Tab 1 → C24</td><td class="value"><span id="cap_Tamb_disp">44.0</span></td><td>°C</td></tr>
@@ -4826,7 +4855,9 @@ function computeSeismic() {
     <div class="kpi"><div class="kpi-label">Period Vertical Tv</div><div class="kpi-value">${Tv_disp}</div><div class="kpi-unit">Sec (EN 1998-4 A.3.3)</div></div>
     <div class="kpi"><div class="kpi-label">Impulsive Mass mi</div><div class="kpi-value">${(mi_kg/1000).toFixed(1)}</div><div class="kpi-unit">ton</div></div>
     <div class="kpi"><div class="kpi-label">Convective Mass mc</div><div class="kpi-value">${(mc_kg/1000).toFixed(1)}</div><div class="kpi-unit">ton</div></div>
-    <div class="kpi"><div class="kpi-label">Anchorage Ratio J</div><div class="kpi-value">${fmt(J,4)}</div><div class="kpi-unit">${J>0.785?'⚠ Anchored required':'Self-anchored OK'}</div></div>`;
+    <div class="kpi"><div class="kpi-label">Anchorage Ratio J</div><div class="kpi-value">${fmt(J,4)}</div><div class="kpi-unit">${J>0.785?'⚠ Anchored required':'Self-anchored OK'}</div></div>
+    <div class="kpi" style="border-color:var(--warn)"><div class="kpi-label">Seismic Freeboard OLE (Auto)</div><div class="kpi-value" style="color:var(--warn)" id="kpi_FB_OLE">—</div><div class="kpi-unit">mm — 0.84·R·Ac,OBE (5% damp)</div></div>
+    <div class="kpi" style="border-color:var(--warn)"><div class="kpi-label">Seismic Freeboard CLE (Auto)</div><div class="kpi-value" style="color:var(--warn)" id="kpi_FB_CLE">—</div><div class="kpi-unit">mm — 0.84·R·Ac,SSE·η (0.5% damp)</div></div>`;
 
   // ── Step 6: Results Table ────────────────────────────────────────────────
   const FY = g('FY_weld'), UTS = g('UTS_weld');
@@ -4968,6 +4999,41 @@ function computeSeismic() {
 
   // ── Step 9: Compressive Axial Stress ─────────────────────────────────────
   computeCompAxial();
+
+  // ── Step 10: Seismic Freeboard Auto-Calculation (EN 1998-4 Annex A.4) ────
+  // δs = 0.84 × R × Ac  (in metres, where Ac is spectral acceleration in g)
+  // OBE: 5% damped convective Ac (from spectrum at Tc)
+  // SSE: 0.5% damped  = Ac_5% × η,  η = √(10/(5+0.5)) = 1.3484
+  {
+    const R_tank    = D / 2;          // m (undepleted inner radius)
+    const eta_conv  = Math.sqrt(10 / (5 + 0.5));  // damping correction factor 5% → 0.5%
+
+    // Convective accelerations at Tc — use spectrum-interpolated values (live)
+    const Ac_OBE_5pct = parseFloat(document.getElementById('s_OLE_Tc_horiz')?.value) || ac5_OBE;
+    const Ac_SSE_5pct = parseFloat(document.getElementById('s_SSE_Tc_horiz')?.value) || ac5_SSE;
+
+    // Auto freeboard (mm)
+    const FB_OLE_auto = 0.84 * R_tank * Ac_OBE_5pct * 1000;   // 5% damp for OBE/OLE
+    const FB_CLE_auto = 0.84 * R_tank * Ac_SSE_5pct * eta_conv * 1000; // 0.5% damp for SSE/CLE
+
+    // Store on window so computeCapacity() can read them
+    window._FB_OLE_auto = FB_OLE_auto;
+    window._FB_CLE_auto = FB_CLE_auto;
+
+    // Push to display fields in Capacity tab
+    const setAutoFB = (id, v) => { const el = document.getElementById(id); if (el) el.value = v.toFixed(2); };
+    setAutoFB('cap_FB_OLE_auto', FB_OLE_auto);
+    setAutoFB('cap_FB_CLE_auto', FB_CLE_auto);
+
+    // Update Seismic tab KPI cards
+    const kpi_OLE = document.getElementById('kpi_FB_OLE');
+    const kpi_CLE = document.getElementById('kpi_FB_CLE');
+    if (kpi_OLE) kpi_OLE.textContent = FB_OLE_auto.toFixed(1);
+    if (kpi_CLE) kpi_CLE.textContent = FB_CLE_auto.toFixed(1);
+
+    // Refresh capacity to use updated auto values
+    computeCapacity();
+  }
 
   if (document.getElementById('page8')?.classList.contains('active')) computeTankGraphic();
 }
@@ -7007,8 +7073,19 @@ function computeCapacity() {
 
   // ── User-editable inputs ──────────────────────────────────────────────────
   const LLL_mm = parseFloat(document.getElementById('cap_LLL').value)    || 1900;
-  const FB_OLE = parseFloat(document.getElementById('cap_FB_OLE').value) || 579.64;
-  const FB_CLE = parseFloat(document.getElementById('cap_FB_CLE').value) || 1394.88;
+
+  // Freeboard: auto-calc from computeSeismic, user can override
+  const FB_OLE_auto_val = (window._FB_OLE_auto > 0) ? window._FB_OLE_auto : 618.01; // fallback EN 1998-4 default
+  const FB_CLE_auto_val = (window._FB_CLE_auto > 0) ? window._FB_CLE_auto : 1396.11;
+
+  const FB_OLE_userEl = document.getElementById('cap_FB_OLE');
+  const FB_CLE_userEl = document.getElementById('cap_FB_CLE');
+  const FB_OLE_userVal = FB_OLE_userEl ? parseFloat(FB_OLE_userEl.value) : NaN;
+  const FB_CLE_userVal = FB_CLE_userEl ? parseFloat(FB_CLE_userEl.value) : NaN;
+
+  // Governing values (user overrides auto if provided)
+  const FB_OLE = (!isNaN(FB_OLE_userVal) && FB_OLE_userEl.value.trim() !== '') ? FB_OLE_userVal : FB_OLE_auto_val;
+  const FB_CLE = (!isNaN(FB_CLE_userVal) && FB_CLE_userEl.value.trim() !== '') ? FB_CLE_userVal : FB_CLE_auto_val;
 
   // ── Sync read-only linked display fields ─────────────────────────────────
   const upd = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
@@ -7048,8 +7125,22 @@ function computeCapacity() {
 
   // Section 2 – input echo rows
   setV('cap_LLL_disp',   LLL_mm, 2);
+
+  // Freeboard display: auto-calc, user, governing
+  const setAutoDisp = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val.toFixed(2); };
+  const setUserDisp = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = isNaN(val) ? '— (using auto)' : val.toFixed(2) + ' (user override)'; };
+
+  setAutoDisp('cap_FBOLE_auto_disp', FB_OLE_auto_val);
+  setAutoDisp('cap_FBCLE_auto_disp', FB_CLE_auto_val);
+  setUserDisp('cap_FBOLE_user_disp', FB_OLE_userVal);
+  setUserDisp('cap_FBCLE_user_disp', FB_CLE_userVal);
   setV('cap_FBOLE_disp', FB_OLE, 2);
   setV('cap_FBCLE_disp', FB_CLE, 2);
+
+  // Also update the auto-calc readonly display inputs
+  const setAutoInput = (id, val) => { const el = document.getElementById(id); if (el) el.value = val.toFixed(2); };
+  setAutoInput('cap_FB_OLE_auto', FB_OLE_auto_val);
+  setAutoInput('cap_FB_CLE_auto', FB_CLE_auto_val);
 
   // Section 2 – thermal parameters display
   setV('cap_alpha_disp', alpha,   7);
@@ -7599,13 +7690,158 @@ interpolateSpectrumValues();  // Set initial interpolated values
     }
   }
 
-  // Disable Ctrl+S (Save) keyboard shortcut
-  document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
-  }, true);
+  // Ctrl+S is now handled by cloud save (see Cloud Save script below)
 </script>
+
+<script>
+// ─── Cloud Save / Load System ────────────────────────────────────────────────
+// Uses window.storage (persistent artifact storage) — NOT localStorage.
+// Saves all user-editable inputs and restores them on next open.
+
+const SAVE_KEY = 'dwst_calc_inputs_v1';
+
+// Collect all saveable input IDs (all inputs/selects that are not readonly)
+function getAllSaveableInputs() {
+  const inputs = [];
+  document.querySelectorAll('input:not([readonly]), select').forEach(el => {
+    if (el.id && el.type !== 'password' && el.type !== 'button') {
+      inputs.push({ id: el.id, value: el.value, type: el.type });
+    }
+  });
+  // Also save course widths and adopted thicknesses (class-based, no id)
+  document.querySelectorAll('.cw, .cadopt').forEach((el, i) => {
+    const key = el.classList.contains('cw') ? 'cw_' + (el.dataset.idx||i) : 'cadopt_' + (el.dataset.idx||i);
+    inputs.push({ id: key, value: el.value, cls: el.className, idx: el.dataset.idx });
+  });
+  return inputs;
+}
+
+async function saveAllInputs() {
+  const btn = document.getElementById('mainSaveBtn');
+  const statusEl = document.getElementById('globalSaveStatus');
+  try {
+    btn.disabled = true;
+    btn.textContent = '⏳ Saving…';
+
+    const data = {
+      inputs: getAllSaveableInputs(),
+      spectrumData: typeof spectrumData !== 'undefined' ? spectrumData : null,
+      savedAt: new Date().toISOString()
+    };
+
+    if (window.storage) {
+      await window.storage.set(SAVE_KEY, JSON.stringify(data));
+    } else {
+      // Fallback: sessionStorage (same session only) — still not localStorage
+      sessionStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    }
+
+    const timeStr = new Date().toLocaleString();
+    btn.textContent = '✓ Saved!';
+    btn.style.background = '#22c55e';
+    statusEl.textContent = 'Last saved: ' + timeStr;
+    statusEl.style.color = 'var(--accent2)';
+
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = '💾 Save Inputs';
+      btn.style.background = '';
+    }, 2000);
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = '⚠ Save Failed';
+    btn.style.background = '#ef4444';
+    statusEl.textContent = 'Save error: ' + err.message;
+    console.error('Save error:', err);
+    setTimeout(() => {
+      btn.textContent = '💾 Save Inputs';
+      btn.style.background = '';
+    }, 3000);
+  }
+}
+
+async function loadAllInputs() {
+  try {
+    let raw = null;
+    if (window.storage) {
+      try {
+        const result = await window.storage.get(SAVE_KEY);
+        raw = result ? result.value : null;
+      } catch(e) { raw = null; }
+    }
+    if (!raw) {
+      // Try sessionStorage fallback
+      raw = sessionStorage.getItem(SAVE_KEY);
+    }
+    if (!raw) return false;
+
+    const data = JSON.parse(raw);
+    if (!data || !data.inputs) return false;
+
+    // Restore all inputs
+    data.inputs.forEach(item => {
+      if (item.cls) {
+        // Course width / adopted thickness (class-based)
+        const els = document.querySelectorAll('.' + item.cls.trim().split(' ')[0]);
+        els.forEach(el => {
+          if (el.dataset.idx == item.idx) el.value = item.value;
+        });
+      } else {
+        const el = document.getElementById(item.id);
+        if (el && item.value !== undefined) el.value = item.value;
+      }
+    });
+
+    // Restore spectrum data if present
+    if (data.spectrumData && typeof spectrumData !== 'undefined') {
+      spectrumData = data.spectrumData;
+      if (typeof populateSpectrumTable === 'function') populateSpectrumTable();
+      if (typeof interpolateSpectrumValues === 'function') interpolateSpectrumValues();
+    }
+
+    // Re-run all computations after restoring
+    setTimeout(() => {
+      try { computeGeneral(); } catch(e) {}
+      try { computeThickness(); } catch(e) {}
+      try { computeAnnularPlate(); } catch(e) {}
+      try { computeSeismic(); } catch(e) {}
+      try { computeExtPressure(); } catch(e) {}
+      try { computeStiffeners(); } catch(e) {}
+      try { computeCapacity(); } catch(e) {}
+      try { computeWeightSummary(); } catch(e) {}
+      try { computeTankGraphic(); } catch(e) {}
+    }, 100);
+
+    // Update status
+    const savedAt = data.savedAt ? new Date(data.savedAt).toLocaleString() : 'Unknown';
+    const statusEl = document.getElementById('globalSaveStatus');
+    if (statusEl) {
+      statusEl.textContent = 'Last saved: ' + savedAt;
+      statusEl.style.color = 'var(--accent2)';
+    }
+
+    console.log('✓ Inputs restored from cloud save (' + savedAt + ')');
+    return true;
+  } catch(err) {
+    console.warn('Failed to load saved inputs:', err);
+    return false;
+  }
+}
+
+// Enable Ctrl+S to save
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    e.stopPropagation();
+    saveAllInputs();
+    return false;
+  }
+}, true);
+
+// Auto-load on startup (after app content is visible)
+window.addEventListener('load', () => {
+  setTimeout(() => loadAllInputs(), 400);
+});
+</script>
+
 </body></html>
