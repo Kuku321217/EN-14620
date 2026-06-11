@@ -9,237 +9,250 @@
 <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
 <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  /* =====================================================================
+     DWST_EN14620 — Engineering calculation-sheet theme
+     Re-skinned to match the API-650 "paper-white sheet, slate ink,
+     drafting-blue primary" aesthetic. The original (dark) CSS variable
+     NAMES are preserved and re-pointed to light values so the hundreds of
+     inline var(--bg2) / var(--accent2) / var(--input-clr) references in the
+     markup all adopt the new palette automatically.
+     ===================================================================== */
   :root {
-    --bg: #0f1117;
-    --bg2: #181c27;
-    --bg3: #1e2333;
-    --border: #2a3050;
-    --accent: #4a7cff;
-    --accent2: #00c9a7;
-    --warn: #f59e0b;
-    --danger: #ef4444;
-    --safe: #22c55e;
-    --text: #e2e8f0;
-    --muted: #7a8aaa;
-    --card-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    /* --- legacy names, re-mapped to the light calc-sheet palette --- */
+    --bg          : #e9ebee;   /* desk / behind-sheet */
+    --bg2         : #ffffff;   /* the calc sheet / panel */
+    --bg3         : #1f4e79;   /* heading fill (drafting blue) */
+    --border      : #c9ced6;   /* rules */
+    --border-strong:#8a929e;   /* heavy rules */
+    --accent      : #1f4e79;   /* drafting blue (primary) */
+    --accent2     : #2f6f4f;   /* conformance green (was teal) */
+    --warn        : #b5731f;   /* amber/oxide for warnings */
+    --danger      : #9c2b2b;   /* oxide red (non-conformance) */
+    --safe        : #2f6f4f;   /* conformance green */
+    --ok          : #2f6f4f;
+    --fail        : #9c2b2b;
+    --text        : #1d242c;   /* primary ink */
+    --fg          : #1d242c;
+    --label       : #5d6772;
+    --muted       : #5d6772;   /* secondary ink */
+    --card-shadow : 0 1px 2px rgba(29,36,44,.10), 0 6px 18px rgba(29,36,44,.06);
+
+    /* editable / computed field tints (kept as named vars, recoloured) */
+    --input-clr     : #0b3d62;          /* editable field text (drafting ink) */
+    --input-bg      : #fff7df;          /* editable cell fill (data-entry tint) */
+    --input-border  : #d8b765;          /* editable cell border */
+    --input-focus   : #1f4e79;          /* focus accent */
+    --readonly-clr  : #2f6f4f;          /* computed text (green) */
+    --readonly-bg   : #eef4f0;          /* computed fill */
+    --readonly-border:#bcd9c8;          /* computed border */
+
+    --panel-2 : #f5f6f8;                /* zebra / input wells */
   }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; line-height: 1.6; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', Arial, sans-serif;
+    font-size: 14px; line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
 
   /* ── Password Gate ── */
   #password-gate {
-    position: fixed; inset: 0; background: #0f1117;
+    position: fixed; inset: 0; background: var(--bg);
     display: flex; align-items: center; justify-content: center;
     z-index: 99999; flex-direction: column; gap: 24px;
   }
   #password-gate .gate-card {
-    background: #181c27; border: 1px solid #2a3050; border-radius: 16px;
+    background: #fff; border: 1px solid var(--border-strong); border-radius: 4px;
     padding: 40px 48px; width: 360px; text-align: center;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    box-shadow: var(--card-shadow);
   }
   #password-gate .gate-logo {
-    width: 56px; height: 56px; background: #4a7cff; border-radius: 14px;
+    width: 56px; height: 56px; background: var(--accent); border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
     font-size: 22px; font-weight: 700; color: #fff; margin: 0 auto 20px;
+    font-family: 'IBM Plex Mono', monospace; letter-spacing: .04em;
   }
-  #password-gate h2 { font-size: 18px; font-weight: 600; margin-bottom: 6px; color: #e2e8f0; }
-  #password-gate p { font-size: 13px; color: #7a8aaa; margin-bottom: 24px; }
+  #password-gate h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+  #password-gate p  { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
   #password-gate input {
-    width: 100%; padding: 12px 16px; border-radius: 8px;
-    border: 1px solid #2a3050; background: #0f1117; color: #e2e8f0;
+    width: 100%; padding: 12px 16px; border-radius: 3px;
+    border: 1px solid var(--input-border); background: var(--input-bg); color: var(--input-clr);
     font-size: 15px; letter-spacing: 2px; outline: none;
-    transition: border-color .2s; margin-bottom: 14px;
-    font-family: 'IBM Plex Mono', monospace;
+    transition: border-color .15s, box-shadow .15s; margin-bottom: 14px;
+    font-family: 'IBM Plex Mono', monospace; font-weight: 600;
   }
-  #password-gate input:focus { border-color: #4a7cff; }
+  #password-gate input:focus { border-color: var(--accent); background:#fff; box-shadow:0 0 0 2px rgba(31,78,121,.2); }
   #password-gate button {
-    width: 100%; padding: 12px; border-radius: 8px; border: none;
-    background: #4a7cff; color: #fff; font-size: 14px; font-weight: 600;
-    cursor: pointer; transition: background .2s;
+    width: 100%; padding: 12px; border-radius: 3px; border: none;
+    background: var(--accent); color: #fff; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background .15s;
   }
-  #password-gate button:hover { background: #3a6ce8; }
-  #password-gate .error {
-    color: #ef4444; font-size: 12px; margin-top: 8px; display: none;
-  }
+  #password-gate button:hover { background: #163a5a; }
+  #password-gate .error { color: var(--danger); font-size: 12px; margin-top: 8px; display: none; }
   #app-content { display: none; }
 
   /* ── Header ── */
-  header { background: linear-gradient(135deg, #0f1117 0%, #1a2040 100%); border-bottom: 1px solid var(--border); padding: 18px 32px; display: flex; align-items: center; gap: 16px; }
-  header .logo { width: 44px; height: 44px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0; }
-  header h1 { font-size: 18px; font-weight: 600; letter-spacing: 0.02em; }
+  header {
+    background: #fff;
+    border-bottom: 1px solid var(--border-strong);
+    box-shadow: var(--card-shadow);
+    padding: 14px 32px; display: flex; align-items: center; gap: 16px;
+  }
+  header .logo {
+    width: 44px; height: 44px; background: var(--accent); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; color: #fff; flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace; letter-spacing: .03em;
+  }
+  header h1 {
+    font-size: clamp(16px,2vw,21px); font-weight: 700; letter-spacing: -.01em; color: var(--text);
+  }
+  header h1 span { color: var(--accent); font-weight: 600; }
   header p { font-size: 12px; color: var(--muted); }
   .header-actions { margin-left: auto; display: flex; gap: 10px; }
 
   /* ── Tabs ── */
-  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); background: var(--bg2); padding: 0 32px; overflow-x: auto; position: sticky; top: 0; z-index: 100; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
-  .tabs::-webkit-scrollbar { height: 4px; }
+  .tabs {
+    display: flex; gap: 2px; background: var(--bg);
+    border-bottom: 2px solid var(--accent); padding: 0 32px;
+    overflow-x: auto; position: sticky; top: 0; z-index: 100;
+    scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent;
+  }
+  .tabs::-webkit-scrollbar { height: 6px; }
   .tabs::-webkit-scrollbar-track { background: transparent; }
-  .tabs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-  .tab { padding: 14px 22px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--muted); border-bottom: 2px solid transparent; transition: all .2s; white-space: nowrap; }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .tab:hover:not(.active) { color: var(--text); }
+  .tabs::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 0; }
+  .tab {
+    padding: 9px 18px; cursor: pointer; font-size: 13px; font-weight: 500;
+    color: var(--muted); white-space: nowrap; transition: background .12s, color .12s;
+    border: 1px solid var(--border); border-bottom: none;
+    background: var(--panel-2); border-radius: 3px 3px 0 0;
+    position: relative; top: 2px;
+  }
+  .tab.active {
+    color: var(--accent); background: #fff; font-weight: 600;
+    border-color: var(--accent); border-bottom: 2px solid #fff;
+  }
+  .tab:hover:not(.active) { color: var(--text); background: #fff; }
 
   /* ── Layout ── */
   .page { display: none; padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
   .page.active { display: block; }
 
   /* ── Section cards ── */
-  .section { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 22px; overflow: hidden; }
-  .badge-safe { background: rgba(34,197,94,0.15); color: #22c55e; }
-  .badge-fail { background: rgba(239,68,68,0.15); color: #ef4444; }
-  :root { --ok: #22c55e; --fail: #ef4444; }
-  .section-header { padding: 14px 20px; background: var(--bg3); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
-  .section-header h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
-  .section-num { width: 26px; height: 26px; border-radius: 6px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-  .section-body { padding: 20px; }
-
-  /* ── Input system – unified distinctive styling ── */
-  /*  --input-clr   : editable user inputs  → amber/gold  */
-  /*  --readonly-clr: computed/linked fields → teal        */
-  :root {
-    --input-clr    : #f5a623;   /* amber – user-editable */
-    --input-bg     : rgba(245,166,35,0.07);
-    --input-border : rgba(245,166,35,0.45);
-    --input-focus  : rgba(245,166,35,0.85);
-    --readonly-clr : var(--accent2);   /* teal – computed  */
-    --readonly-bg  : rgba(0,201,167,0.06);
-    --readonly-border: rgba(0,201,167,0.3);
+  .section {
+    background: #fff; border: 1px solid var(--border-strong); border-radius: 3px;
+    margin-bottom: 22px; overflow: hidden; box-shadow: var(--card-shadow);
   }
+  .section-header {
+    padding: 9px 16px; background: var(--accent); border-bottom: 1px solid var(--border-strong);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-header h2 {
+    font-size: 13px; font-weight: 600; letter-spacing: .02em; text-transform: none; color: #fff;
+  }
+  .section-num {
+    min-width: 24px; height: 20px; padding: 0 5px; border-radius: 2px;
+    background: rgba(255,255,255,.18); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .section-body { padding: 18px 18px; }
 
-  /* Editable inputs */
+  /* ── Input system : amber editable / green computed (calc-sheet) ── */
   .field input:not([readonly]),
   .field select {
-    background   : var(--input-bg);
-    border       : 1px solid var(--input-border);
-    border-left  : 3px solid var(--input-clr);
-    border-radius: 7px;
-    padding      : 9px 12px 9px 10px;
-    color        : var(--input-clr);
-    font-family  : 'IBM Plex Mono', monospace;
-    font-size    : 13px;
-    font-weight  : 500;
-    outline      : none;
-    transition   : border-color .2s, box-shadow .2s;
+    background    : var(--input-bg);
+    border        : 1px solid var(--input-border);
+    border-radius : 2px;
+    padding       : 8px 10px;
+    color         : var(--input-clr);
+    font-family   : 'IBM Plex Mono', monospace;
+    font-size     : 13px; font-weight: 600;
+    outline       : none;
+    transition    : border-color .12s, box-shadow .12s, background .12s;
   }
+  .field input:not([readonly]):hover,
+  .field select:hover { background: #fff2c9; }
   .field input:not([readonly]):focus,
   .field select:focus {
-    border-color : var(--input-focus);
-    border-left  : 3px solid var(--input-focus);
-    box-shadow   : 0 0 0 3px rgba(245,166,35,0.15);
+    border-color: var(--accent); background:#fff;
+    box-shadow  : 0 0 0 2px rgba(31,78,121,.2);
   }
-  /* Readonly / computed */
   .field input[readonly] {
-    background   : var(--readonly-bg);
-    border       : 1px solid var(--readonly-border);
-    border-left  : 3px solid var(--readonly-clr);
-    border-radius: 7px;
-    padding      : 9px 12px 9px 10px;
-    color        : var(--readonly-clr);
-    font-family  : 'IBM Plex Mono', monospace;
-    font-size    : 13px;
-    font-weight  : 500;
-    cursor       : default;
-    outline      : none;
+    background    : var(--readonly-bg);
+    border        : 1px solid var(--readonly-border);
+    border-radius : 2px;
+    padding       : 8px 10px;
+    color         : var(--readonly-clr);
+    font-family   : 'IBM Plex Mono', monospace;
+    font-size     : 13px; font-weight: 600;
+    cursor        : default; outline: none;
   }
-  /* Select dropdown arrow tint */
   .field select {
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23f5a623'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 32px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%231f4e79'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;
   }
-  /* Field label – show ✎ pencil for editable, 🔗 for readonly */
   .field label {
-    font-size  : 11px;
-    font-weight: 500;
-    color      : var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    display    : flex;
-    align-items: center;
-    gap        : 5px;
+    font-size: 11px; font-weight: 500; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .05em;
+    display: flex; align-items: center; gap: 5px;
   }
-  /* Add pencil icon automatically to labels of editable inputs via JS; 
-     readonly labels get chain link – handled in CSS via adjacent sibling */
   .field:has(input[readonly]) label::before  { content:'🔗'; font-size:10px; }
-  .field:has(input:not([readonly])) label::before { content:'✎'; font-size:11px; color:var(--input-clr); }
-  .field:has(select) label::before { content:'✎'; font-size:11px; color:var(--input-clr); }
+  .field:has(input:not([readonly])) label::before { content:'✎'; font-size:11px; color:var(--warn); }
+  .field:has(select) label::before { content:'✎'; font-size:11px; color:var(--warn); }
+  .field .unit { font-size: 11px; color: var(--muted); margin-top: 2px; font-family:'IBM Plex Mono',monospace; }
 
-  /* Unit text below inputs */
-  .field .unit { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
-  /* Courses table inline inputs (shell course widths, adopted thickness) */
+  /* Courses table inline inputs */
   .courses-table input {
-    background   : var(--input-bg);
-    border       : 1px solid var(--input-border);
-    border-left  : 3px solid var(--input-clr);
-    border-radius: 5px;
-    padding      : 5px 8px 5px 6px;
-    color        : var(--input-clr);
-    font-family  : 'IBM Plex Mono', monospace;
-    font-size    : 12px;
-    font-weight  : 500;
-    width        : 80px;
-    text-align   : center;
-    outline      : none;
-    transition   : border-color .2s, box-shadow .2s;
+    background    : var(--input-bg);
+    border        : 1px solid var(--input-border);
+    border-radius : 2px;
+    padding       : 5px 7px;
+    color         : var(--input-clr);
+    font-family   : 'IBM Plex Mono', monospace;
+    font-size     : 12px; font-weight: 600;
+    width         : 80px; text-align: center; outline: none;
+    transition    : border-color .12s, box-shadow .12s;
   }
-  .courses-table input:focus {
-    border-color : var(--input-focus);
-    box-shadow   : 0 0 0 2px rgba(245,166,35,0.15);
-  }
+  .courses-table input:focus { border-color: var(--accent); background:#fff; box-shadow: 0 0 0 2px rgba(31,78,121,.2); }
+  .courses-table .calc-val { color: var(--readonly-clr); }
+  .courses-table .req-val  { color: var(--warn); }
 
-  /* Stiffener sizing table mini-inputs */
+  /* Stiffener sizing mini-inputs */
   #stiffSizingTable input[type="number"] {
-    background   : var(--input-bg) !important;
-    border       : 1px solid var(--input-border) !important;
-    border-left  : 3px solid var(--input-clr) !important;
-    border-radius: 4px !important;
-    color        : var(--input-clr) !important;
-    font-family  : 'IBM Plex Mono', monospace !important;
-    font-weight  : 500 !important;
-    transition   : box-shadow .15s;
+    background    : var(--input-bg) !important;
+    border        : 1px solid var(--input-border) !important;
+    border-radius : 2px !important;
+    color         : var(--input-clr) !important;
+    font-family   : 'IBM Plex Mono', monospace !important;
+    font-weight   : 600 !important;
+    transition    : box-shadow .12s;
   }
   #stiffSizingTable input[type="number"]:focus {
-    outline   : none;
-    box-shadow: 0 0 0 2px rgba(245,166,35,0.2) !important;
+    outline: none; background:#fff !important;
+    box-shadow: 0 0 0 2px rgba(31,78,121,.2) !important;
   }
 
-  /* Legend strip shown once at top of each section-body that has inputs */
-  .input-legend {
-    display    : flex;
-    align-items: center;
-    gap        : 18px;
-    font-size  : 11px;
-    color      : var(--muted);
-    margin-bottom: 14px;
-    flex-wrap  : wrap;
-  }
+  /* Legend strip */
+  .input-legend { display: flex; align-items: center; gap: 18px; font-size: 11px; color: var(--muted); margin-bottom: 14px; flex-wrap: wrap; }
   .input-legend span { display:flex; align-items:center; gap:5px; }
-  .leg-swatch {
-    display      : inline-block;
-    width        : 10px;
-    height       : 10px;
-    border-radius: 2px;
-  }
-  .leg-editable  { background:var(--input-clr);  }
-  .leg-computed  { background:var(--readonly-clr); }
+  .leg-swatch { display: inline-block; width: 11px; height: 11px; border-radius: 2px; border:1px solid var(--border-strong); }
+  .leg-editable  { background: var(--input-bg); border-color: var(--input-border); }
+  .leg-computed  { background: var(--readonly-bg); border-color: var(--readonly-border); }
 
-  /* Print overrides */
+  /* Print field tints */
   @media print {
-    .field input:not([readonly]),
-    .field select,
-    .courses-table input {
-      background: #fffbf0 !important;
-      border: 1px solid #c8902a !important;
-      color: #7a4f00 !important;
+    .field input:not([readonly]), .field select, .courses-table input {
+      background: #fff7df !important; border: 1px solid #c8902a !important; color: #5a3b00 !important;
     }
-    .field input[readonly] {
-      background: #f0fcf9 !important;
-      border: 1px solid #00b094 !important;
-      color: #005a47 !important;
-    }
+    .field input[readonly] { background: #eef4f0 !important; border: 1px solid #2f6f4f !important; color: #1f4733 !important; }
   }
 
   /* ── Grid layouts ── */
@@ -247,142 +260,135 @@
   .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
   .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
   @media(max-width: 900px) { .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; } .grid-2 { grid-template-columns: 1fr; } }
-
   .field { display: flex; flex-direction: column; gap: 5px; }
-  .btn { padding: 10px 22px; border-radius: 8px; border: none; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 600; transition: all .15s; }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: #3a6ce8; transform: translateY(-1px); }
-  .btn-success { background: var(--accent2); color: #0f1117; }
-  .btn-success:hover { background: #00b094; }
-  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+
+  /* ── Buttons ── */
+  .btn {
+    padding: 9px 18px; border-radius: 3px; border: 1px solid var(--border);
+    cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5px;
+    font-weight: 500; transition: background .12s, color .12s, border-color .12s;
+    background: #fff; color: var(--text);
+  }
+  .btn:hover { background: var(--panel-2); color: var(--accent); border-color: var(--border-strong); }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { background: #163a5a; color: #fff; }
+  .btn-success { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+  .btn-success:hover { background: #25593f; color:#fff; }
+  .btn-outline { background: #fff; border: 1px solid var(--border-strong); color: var(--text); }
   .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
-  .btn-print { background: var(--bg3); border: 1px solid var(--border); color: var(--text); }
-  .btn-print:hover { border-color: var(--accent2); color: var(--accent2); }
-  .btn-group { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+  .btn-print { background: #fff; border: 1px solid var(--border-strong); color: var(--text); }
+  .btn-print:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-pdf  { background: var(--danger); color: #fff; border-color: var(--danger); }
+  .btn-pdf:hover  { background: #7e2121; color:#fff; }
+  .btn-word { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-word:hover { background: #163a5a; color:#fff; }
+  .btn-save { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+  .btn-save:hover { background: #25593f; color:#fff; }
+  .btn-group { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
 
   /* ── Results table ── */
-  .result-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-  .result-table th { background: var(--bg3); color: var(--muted); text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.06em; padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; }
-  .result-table td { padding: 9px 12px; border-bottom: 1px solid rgba(42,48,80,0.5); font-family: 'IBM Plex Mono', monospace; }
-  .result-table tr:hover td { background: rgba(74,124,255,0.05); }
+  .result-table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-family:'IBM Plex Mono', monospace; }
+  .result-table th {
+    background: var(--accent); color: #fff; text-transform: none; font-size: 10.5px;
+    letter-spacing: .02em; padding: 9px 12px; border-bottom: 1px solid var(--border-strong);
+    text-align: left; font-family:'IBM Plex Sans',sans-serif; font-weight:500;
+  }
+  .result-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .result-table tr:nth-child(even) td { background: var(--panel-2); }
+  .result-table tr:hover td { background: #eef3f8; }
   .result-table .label { font-family: 'IBM Plex Sans', sans-serif; color: var(--text); }
   .result-table .formula { font-size: 11px; color: var(--muted); }
-  .result-table .value { color: var(--accent2); font-weight: 500; }
+  .result-table .value { color: var(--accent2); font-weight: 600; }
   .result-table .sym { color: var(--accent); }
 
   /* ── Status badge ── */
-  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-  .badge-safe { background: rgba(34,197,94,.15); color: var(--safe); border: 1px solid rgba(34,197,94,.3); }
-  .badge-fail { background: rgba(239,68,68,.15); color: var(--danger); border: 1px solid rgba(239,68,68,.3); }
-  .badge-info { background: rgba(74,124,255,.15); color: var(--accent); border: 1px solid rgba(74,124,255,.3); }
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 2px; font-size: 11px; font-weight: 600; font-family:'IBM Plex Mono',monospace; letter-spacing:.02em; border:1px solid transparent; }
+  .badge-safe { background: #eaf3ee; color: var(--safe);   border-color: #bcd9c8; }
+  .badge-fail { background: #f6e9e9; color: var(--danger); border-color: #e0bdbd; }
+  .badge-info { background: #eaf0f6; color: var(--accent);  border-color: #c3d3e6; }
 
   /* ── Shell courses table ── */
-  .courses-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .courses-table th { background: var(--bg3); color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: center; }
-  .courses-table td { padding: 8px 10px; border-bottom: 1px solid rgba(42,48,80,0.4); text-align: center; font-family: 'IBM Plex Mono', monospace; }
+  .courses-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family:'IBM Plex Mono',monospace; }
+  .courses-table th {
+    background: var(--accent); color: #fff; font-size: 10.5px; text-transform: none;
+    letter-spacing: .02em; padding: 8px 10px; border-bottom: 1px solid var(--border-strong);
+    text-align: center; font-family:'IBM Plex Sans',sans-serif; font-weight:500;
+  }
+  .courses-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: center; }
+  .courses-table tr:nth-child(even) td { background: var(--panel-2); }
   .courses-table td.label { text-align: left; font-family: 'IBM Plex Sans', sans-serif; }
-  .courses-table input { background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: 5px 8px; color: var(--accent); font-family: 'IBM Plex Mono', monospace; font-size: 12px; width: 80px; text-align: center; outline: none; }
-  .courses-table input:focus { border-color: var(--accent); }
-  .courses-table .calc-val { color: var(--accent2); }
-  .courses-table .req-val { color: var(--warn); }
 
-  /* ── Summary cards row ── */
+  /* ── Summary / KPI cards ── */
   .kpi-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; margin-bottom: 22px; }
-  .kpi { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
-  .kpi-label { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-  .kpi-value { font-size: 22px; font-weight: 700; color: var(--accent2); font-family: 'IBM Plex Mono', monospace; }
-  .kpi-unit { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .kpi { background: #fff; border: 1px solid var(--border-strong); border-radius: 3px; padding: 14px 16px; box-shadow: var(--card-shadow); }
+  .kpi-label { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 5px; font-weight:500; }
+  .kpi-value { font-size: 22px; font-weight: 600; color: var(--accent); font-family: 'IBM Plex Mono', monospace; letter-spacing:-.01em; }
+  .kpi-unit  { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
   /* ── Divider ── */
   .divider { height: 1px; background: var(--border); margin: 18px 0; }
 
   /* ── Info banner ── */
-  .info-banner { background: rgba(74,124,255,.1); border: 1px solid rgba(74,124,255,.25); border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #93b4ff; margin-bottom: 18px; }
+  .info-banner {
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent); border-radius: 2px;
+    padding: 11px 14px; font-size: 12px; color: var(--text); margin-bottom: 18px;
+  }
+  .info-banner strong { color: var(--accent); }
 
-  .btn-pdf  { background: #dc2626; color: #fff; border: none; }
-  .btn-pdf:hover  { background: #b91c1c; transform: translateY(-1px); }
-  .btn-word { background: #1d4ed8; color: #fff; border: none; }
-  .btn-word:hover { background: #1e40af; transform: translateY(-1px); }
-  .btn-save { background: #16a34a; color: #fff; border: none; }
-  .btn-save:hover { background: #15803d; transform: translateY(-1px); }
-
-  /* ── AY Watermark – fixed, unselectable, pointer-events none ── */
+  /* ── AY Watermark ── */
   .ay-watermark {
-    position: fixed;
-    bottom: 18px;
-    right: 22px;
-    z-index: 9999;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    color: rgba(74,124,255,0.55);
-    background: rgba(15,17,23,0.85);
-    border: 1px solid rgba(74,124,255,0.25);
-    border-radius: 6px;
-    padding: 5px 12px;
-    user-select: none;
-    -webkit-user-select: none;
-    pointer-events: none;
+    position: fixed; bottom: 18px; right: 22px; z-index: 9999;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600;
+    letter-spacing: .12em; color: var(--accent);
+    background: rgba(255,255,255,.92); border: 1px solid var(--border-strong);
+    border-radius: 2px; padding: 5px 11px;
+    user-select: none; -webkit-user-select: none; pointer-events: none;
   }
-  /* AY badge in every page header */
   .ay-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 10.5px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    color: rgba(74,124,255,0.7);
-    background: rgba(74,124,255,0.08);
-    border: 1px solid rgba(74,124,255,0.2);
-    border-radius: 5px;
-    padding: 3px 9px;
-    user-select: none;
-    -webkit-user-select: none;
-    pointer-events: none;
-    white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10.5px; font-weight: 600; letter-spacing: .1em; color: var(--accent);
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 2px; padding: 3px 9px;
+    user-select: none; -webkit-user-select: none; pointer-events: none; white-space: nowrap;
+    font-family:'IBM Plex Mono',monospace;
   }
-  @media print {
-    .ay-watermark { display: none; }
-    .ay-print-badge { display: block !important; }
-  }
+  @media print { .ay-watermark { display: none; } .ay-print-badge { display: block !important; } }
   .ay-print-badge {
-    display: none;
-    text-align: right;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    color: #334;
-    margin-bottom: 8px;
+    display: none; text-align: right; font-size: 10px; font-weight: 700;
+    letter-spacing: .12em; color: #333; margin-bottom: 8px;
   }
 
-  /* ── Formula reference tab styles ── */
-  .formula-section { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 22px; overflow: hidden; }
-  .formula-section h3 { font-size: 13px; font-weight: 600; color: var(--accent); padding: 14px 20px; background: var(--bg3); border-bottom: 1px solid var(--border); letter-spacing: 0.04em; text-transform: uppercase; }
+  /* ── Formula reference tab ── */
+  .formula-section { background: #fff; border: 1px solid var(--border-strong); border-radius: 3px; margin-bottom: 22px; overflow: hidden; box-shadow: var(--card-shadow); }
+  .formula-section h3 { font-size: 13px; font-weight: 600; color: #fff; padding: 9px 16px; background: var(--accent); border-bottom: 1px solid var(--border-strong); letter-spacing: .02em; text-transform: none; }
   .formula-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
   @media(max-width:800px) { .formula-grid { grid-template-columns: 1fr; } }
-  .formula-card { padding: 16px 20px; border-bottom: 1px solid rgba(42,48,80,0.5); }
-  .formula-card:nth-child(odd) { border-right: 1px solid rgba(42,48,80,0.5); }
+  .formula-card { padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .formula-card:nth-child(odd) { border-right: 1px solid var(--border); }
   .formula-name { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
   .formula-ref  { font-size: 10.5px; color: var(--muted); margin-bottom: 6px; }
-  .formula-eq   { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent2); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 7px 12px; line-height: 1.7; }
+  .formula-eq   { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent); background: var(--panel-2); border: 1px solid var(--border); border-left:3px solid var(--accent); border-radius: 2px; padding: 7px 11px; line-height: 1.7; }
   .formula-desc { font-size: 11px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+
+  /* generic scrollbars */
+  ::-webkit-scrollbar { height: 11px; width: 11px; }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 0; }
+  ::-webkit-scrollbar-track { background: var(--panel-2); }
 
   /* ── Print styles ── */
   @media print {
     body { background: #fff; color: #000; }
-    header { background: #fff; border-bottom: 2px solid #000; }
+    header { background: #fff; border-bottom: 2px solid #000; box-shadow:none; }
     .tabs, .btn-group, .header-actions { display: none !important; }
     .page { display: block !important; padding: 10px; }
-    .section { border: 1px solid #ccc; break-inside: avoid; }
-    .section-header { background: #f0f0f0; }
-    .result-table td, .courses-table td, .result-table th, .courses-table th { border: 1px solid #ccc; }
-    .badge-safe { color: green; border: 1px solid green; }
-    .badge-fail { color: red; border: 1px solid red; }
-    .field input, .field select, .courses-table input { border: 1px solid #ccc; color: #000; background: #fff; }
-    .kpi { border: 1px solid #ccc; }
-    .kpi-value { color: #000; }
+    .section { border: 1px solid #999; break-inside: avoid; box-shadow:none; }
+    .section-header { background: #1f4e79; }
+    .result-table td, .courses-table td, .result-table th, .courses-table th { border: 1px solid #bbb; }
+    .badge-safe { color: #1f6b3a; border: 1px solid #1f6b3a; }
+    .badge-fail { color: #9c2b2b; border: 1px solid #9c2b2b; }
+    .kpi { border: 1px solid #999; box-shadow:none; }
+    .kpi-value { color: #1f4e79; }
   }
 </style>
 </head>
@@ -409,7 +415,8 @@
 <header>
   <div class="logo">DW</div>
   <div>
-    <h1>DWST_EN14620 – Seismic Analysis Calculator</h1>
+    <h1>Seismic Analysis Calculator: <span>DWST · EN 14620</span></h1>
+    <p style="font-size:12px;color:var(--muted);margin-top:2px;">Full-containment cryogenic storage tank — inner shell design &amp; seismic verification</p>
   </div>
   <div style="margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <span class="ay-badge">Developed by :AY</span>
@@ -424,17 +431,17 @@
 </header>
 
 <!-- Input legend bar -->
-<div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:7px 32px;display:flex;align-items:center;gap:20px;font-size:11px;color:var(--muted);">
+<div style="background:#fff;border-bottom:1px solid var(--border);padding:7px 32px;display:flex;align-items:center;gap:20px;font-size:11px;color:var(--muted);">
   <span style="font-weight:600;letter-spacing:0.05em;text-transform:uppercase">Input legend:</span>
   <span style="display:flex;align-items:center;gap:6px">
-    <span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:#f5a623;"></span>
-    <span style="color:#f5a623;font-weight:600">✎ User input</span>
-    <span style="margin-left:4px;color:var(--muted)">— editable fields (amber)</span>
+    <span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:#fff7df;border:1px solid #d8b765;"></span>
+    <span style="color:#8a6212;font-weight:600">✎ User input</span>
+    <span style="margin-left:4px;color:var(--muted)">— editable fields</span>
   </span>
   <span style="display:flex;align-items:center;gap:6px">
-    <span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:#00c9a7;"></span>
-    <span style="color:#00c9a7;font-weight:600">🔗 Computed / linked</span>
-    <span style="margin-left:4px;color:var(--muted)">— auto-calculated, read-only (teal)</span>
+    <span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:#eef4f0;border:1px solid #bcd9c8;"></span>
+    <span style="color:#2f6f4f;font-weight:600">🔗 Computed / linked</span>
+    <span style="margin-left:4px;color:var(--muted)">— auto-calculated, read-only</span>
   </span>
 </div>
 
@@ -811,7 +818,7 @@
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <div style="display:flex;flex-direction:column;gap:2px">
               <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Calculated (auto)</span>
-              <span id="s_tU_calc" style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:var(--accent2);background:var(--bg3);padding:5px 10px;border-radius:6px;border:1px solid var(--border)">19.218 mm</span>
+              <span id="s_tU_calc" style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:var(--readonly-clr);background:var(--readonly-bg);padding:5px 10px;border-radius:3px;border:1px solid var(--readonly-border)">19.218 mm</span>
               <span style="font-size:10px;color:var(--muted)">mm = Σ(t×W)/Hf per Excel</span>
             </div>
             <div style="color:var(--muted);font-size:18px;padding-top:14px">→</div>
@@ -824,11 +831,11 @@
         </div>
 
         <div class="field"><label>s(H/3) – Shell thickness at H/3 depth</label><input id="s_sH3" type="number" step="0.001" value="22" oninput="computeSeismic()"><span class="unit">mm — used for Tv (EN 1998-4 A.3.3) Excel J48=0.0187m</span></div>
-        <div class="field"><label>ts – Bottom Shell Course (corroded) <span style="color:var(--accent2);font-size:10px">🔗 AUTO</span></label><input id="s_ts" type="text" readonly="" style="background:var(--bg3);color:var(--accent2);font-weight:600;cursor:default" value="30.0"><span class="unit">mm — linked from Tab 2 Course 1</span></div>
-        <div class="field"><label>ta – Annular Plate Thickness (Anchorage) <span style="color:var(--accent2);font-size:10px">🔗 FIXED</span></label><input id="s_ta" type="text" readonly="" value="16" style="background:var(--bg3);color:var(--accent2);font-weight:600;cursor:default"><span class="unit">mm — Sheet 3 row 376 (fixed)</span></div>
-        <div class="field"><label>FyAnnular – Yield Strength <span style="color:var(--accent2);font-size:10px">🔗 AUTO</span></label><input id="s_FyAnn" type="text" readonly="" style="background:var(--bg3);color:var(--accent2);font-weight:600;cursor:default" value="585"><span class="unit">MPa — linked from Tab 1 (base metal fy)</span></div>
-        <div class="field"><label>FyBottomShell – Yield (Bottom Shell) <span style="color:var(--accent2);font-size:10px">🔗 AUTO</span></label><input id="s_FyBS" type="text" readonly="" style="background:var(--bg3);color:var(--accent2);font-weight:600;cursor:default" value="400"><span class="unit">MPa — linked from Tab 1 (weld fy)</span></div>
-        <div class="field"><label>Ls – Inside Projection of Annular Plate <span style="color:var(--accent2);font-size:10px">🔗 FIXED</span></label><input id="s_Ls" type="text" readonly="" value="1600" style="background:var(--bg3);color:var(--accent2);font-weight:600;cursor:default"><span class="unit">mm — Sheet 3 row 379 (fixed)</span></div>
+        <div class="field"><label>ts – Bottom Shell Course (corroded) <span style="color:var(--accent2);font-size:10px">🔗 AUTO</span></label><input id="s_ts" type="text" readonly="" style="background:var(--readonly-bg);color:var(--readonly-clr);font-weight:600;cursor:default;border:1px solid var(--readonly-border)" value="30.0"><span class="unit">mm — linked from Tab 2 Course 1</span></div>
+        <div class="field"><label>ta – Annular Plate Thickness (Anchorage) <span style="color:var(--accent2);font-size:10px">🔗 FIXED</span></label><input id="s_ta" type="text" readonly="" value="16" style="background:var(--readonly-bg);color:var(--readonly-clr);font-weight:600;cursor:default;border:1px solid var(--readonly-border)"><span class="unit">mm — Sheet 3 row 376 (fixed)</span></div>
+        <div class="field"><label>FyAnnular – Yield Strength <span style="color:var(--accent2);font-size:10px">🔗 AUTO</span></label><input id="s_FyAnn" type="text" readonly="" style="background:var(--readonly-bg);color:var(--readonly-clr);font-weight:600;cursor:default;border:1px solid var(--readonly-border)" value="585"><span class="unit">MPa — linked from Tab 1 (base metal fy)</span></div>
+        <div class="field"><label>FyBottomShell – Yield (Bottom Shell) <span style="color:var(--accent2);font-size:10px">🔗 AUTO</span></label><input id="s_FyBS" type="text" readonly="" style="background:var(--readonly-bg);color:var(--readonly-clr);font-weight:600;cursor:default;border:1px solid var(--readonly-border)" value="400"><span class="unit">MPa — linked from Tab 1 (weld fy)</span></div>
+        <div class="field"><label>Ls – Inside Projection of Annular Plate <span style="color:var(--accent2);font-size:10px">🔗 FIXED</span></label><input id="s_Ls" type="text" readonly="" value="1600" style="background:var(--readonly-bg);color:var(--readonly-clr);font-weight:600;cursor:default;border:1px solid var(--readonly-border)"><span class="unit">mm — Sheet 3 row 379 (fixed)</span></div>
         <div class="field"><label>Anchoring Type</label>
           <select id="s_anchor" onchange="computeSeismic()" value="Self Anchored">
             <option value="Mechanically Anchored">Mechanically Anchored</option>
@@ -883,12 +890,12 @@
         </div>
         <div class="field">
           <label>Ti (Calculated from EN 1998-4)</label>
-          <input id="s_Ti_calc_display" type="text" readonly="" value="0.590" style="background:var(--bg3);color:var(--muted);font-weight:500;cursor:default">
+          <input id="s_Ti_calc_display" type="text" readonly="" value="0.590" style="background:var(--panel-2);color:var(--ink,#1d242c);font-weight:600;cursor:default;border:1px solid var(--border)">
           <span class="unit">Sec — Auto-calculated reference</span>
         </div>
         <div class="field">
           <label>Tc (Calculated from EN 1998-4)</label>
-          <input id="s_Tc_calc_display" type="text" readonly="" value="10.223" style="background:var(--bg3);color:var(--muted);font-weight:500;cursor:default">
+          <input id="s_Tc_calc_display" type="text" readonly="" value="10.223" style="background:var(--panel-2);color:var(--ink,#1d242c);font-weight:600;cursor:default;border:1px solid var(--border)">
           <span class="unit">Sec — Auto-calculated reference</span>
         </div>
       </div>
@@ -907,11 +914,11 @@
       
       <div style="max-height:500px;overflow-y:auto;border:1px solid var(--border);border-radius:8px">
         <table id="spectrumTable" style="width:100%;border-collapse:collapse;font-size:12px">
-          <thead style="position:sticky;top:0;background:var(--bg3);z-index:10">
+          <thead style="position:sticky;top:0;background:var(--accent);z-index:10">
             <tr>
-              <th style="padding:10px;text-align:center;border-bottom:2px solid var(--border);min-width:120px">Period (Sec)</th>
-              <th style="padding:10px;text-align:center;border-bottom:2px solid var(--border);min-width:150px">OBE/OLE<br>Horizontal (g)</th>
-              <th style="padding:10px;text-align:center;border-bottom:2px solid var(--border);min-width:150px">SSE/CLE<br>Horizontal (g)</th>
+              <th style="padding:10px;text-align:center;border-bottom:2px solid var(--border);min-width:120px;color:#fff;font-weight:600;font-family:'IBM Plex Sans',sans-serif">Period (Sec)</th>
+              <th style="padding:10px;text-align:center;border-bottom:2px solid var(--border);min-width:150px;color:#fff;font-weight:600;font-family:'IBM Plex Sans',sans-serif">OBE/OLE<br>Horizontal (g)</th>
+              <th style="padding:10px;text-align:center;border-bottom:2px solid var(--border);min-width:150px;color:#fff;font-weight:600;font-family:'IBM Plex Sans',sans-serif">SSE/CLE<br>Horizontal (g)</th>
             </tr>
           </thead>
           <tbody id="spectrumTableBody">
@@ -920,7 +927,7 @@
         </table>
       </div>
       
-      <div style="margin-top:12px;padding:10px 14px;background:var(--bg3);border-radius:6px;font-size:11px;color:var(--muted)">
+      <div style="margin-top:12px;padding:10px 14px;background:var(--panel-2);border:1px solid var(--border);border-radius:3px;font-size:11px;color:var(--muted)">
         <strong>Note:</strong> Accelerations at Ti, Tc, and Tv are interpolated from this table using linear interpolation between adjacent period values.
       </div>
     </div>
@@ -937,8 +944,8 @@
       <!-- OLE/OBE Accelerations from Spectrum -->
       <p style="font-size:13px;color:var(--accent);margin-bottom:8px;font-weight:600">📊 OLE/OBE Accelerations (5% Damping from Response Spectrum)</p>
       <div class="grid-4">
-        <div class="field"><label>OLE/OBE Horizontal at Ti</label><input id="s_OLE_Ti_horiz" type="text" readonly="" value="0.375" style="background:var(--bg3);color:var(--accent2);font-weight:600;cursor:default"><span class="unit">g — Interpolated from spectrum at Ti</span></div>
-        <div class="field"><label>OLE/OBE Horizontal at Tc</label><input id="s_OLE_Tc_horiz" type="text" readonly="" value="0.017110" style="background:var(--bg3);color:var(--accent2);font-weight:600;cursor:default"><span class="unit">g — Interpolated from spectrum at Tc</span></div>
+        <div class="field"><label>OLE/OBE Horizontal at Ti</label><input id="s_OLE_Ti_horiz" type="text" readonly="" value="0.375" style="background:var(--readonly-bg);color:var(--readonly-clr);font-weight:600;cursor:default;border:1px solid var(--readonly-border)"><span class="unit">g — Interpolated from spectrum at Ti</span></div>
+        <div class="field"><label>OLE/OBE Horizontal at Tc</label><input id="s_OLE_Tc_horiz" type="text" readonly="" value="0.017110" style="background:var(--readonly-bg);color:var(--readonly-clr);font-weight:600;cursor:default;border:1px solid var(--readonly-border)"><span class="unit">g — Interpolated from spectrum at Tc</span></div>
       </div>
       
       <div class="divider"></div>
@@ -946,8 +953,8 @@
       <!-- SSE/CLE Accelerations from Spectrum -->
       <p style="font-size:13px;color:var(--accent);margin-bottom:8px;font-weight:600">📊 SSE/CLE Accelerations (5% Damping from Response Spectrum)</p>
       <div class="grid-4">
-        <div class="field"><label>SSE/CLE Horizontal at Ti</label><input id="s_SSE_Ti_horiz" type="text" readonly="" value="0.625" style="background:var(--bg3);color:var(--accent2);font-weight:600;cursor:default"><span class="unit">g — Interpolated from spectrum at Ti</span></div>
-        <div class="field"><label>SSE/CLE Horizontal at Tc</label><input id="s_SSE_Tc_horiz" type="text" readonly="" value="0.028665" style="background:var(--bg3);color:var(--accent2);font-weight:600;cursor:default"><span class="unit">g — Interpolated from spectrum at Tc</span></div>
+        <div class="field"><label>SSE/CLE Horizontal at Ti</label><input id="s_SSE_Ti_horiz" type="text" readonly="" value="0.625" style="background:var(--readonly-bg);color:var(--readonly-clr);font-weight:600;cursor:default;border:1px solid var(--readonly-border)"><span class="unit">g — Interpolated from spectrum at Ti</span></div>
+        <div class="field"><label>SSE/CLE Horizontal at Tc</label><input id="s_SSE_Tc_horiz" type="text" readonly="" value="0.028665" style="background:var(--readonly-bg);color:var(--readonly-clr);font-weight:600;cursor:default;border:1px solid var(--readonly-border)"><span class="unit">g — Interpolated from spectrum at Tc</span></div>
       </div>
       
       <div class="divider"></div>
@@ -969,10 +976,10 @@
       <!-- Final Design Accelerations (Computed) -->
       <p style="font-size:13px;color:var(--safe);margin-bottom:8px;font-weight:600">✅ Final Design Accelerations (After Adjustment Factors)</p>
       <div class="grid-4">
-        <div class="field"><label>Final OLE/OBE Horizontal at Ti</label><input id="s_final_OLE_Ti" type="text" readonly="" value="0.525" style="background:var(--bg3);color:var(--safe);font-weight:600;cursor:default"><span class="unit">g — 8_Spectra row 22, col O</span></div>
-        <div class="field"><label>Final SSE/CLE Horizontal at Ti</label><input id="s_final_SSE_Ti" type="text" readonly="" value="0.625" style="background:var(--bg3);color:var(--safe);font-weight:600;cursor:default"><span class="unit">g — 8_Spectra row 23, col O</span></div>
-        <div class="field"><label>Final OLE/OBE Horizontal at Tc</label><input id="s_final_OLE_Tc" type="text" readonly="" value="0.033" style="background:var(--bg3);color:var(--safe);font-weight:600;cursor:default"><span class="unit">g — 8_Spectra row 25, col O</span></div>
-        <div class="field"><label>Final SSE/CLE Horizontal at Tc</label><input id="s_final_SSE_Tc" type="text" readonly="" value="0.054" style="background:var(--bg3);color:var(--safe);font-weight:600;cursor:default"><span class="unit">g — 8_Spectra row 26, col O</span></div>
+        <div class="field"><label>Final OLE/OBE Horizontal at Ti</label><input id="s_final_OLE_Ti" type="text" readonly="" value="0.525" style="background:var(--readonly-bg);color:var(--readonly-clr);font-weight:600;cursor:default;border:1px solid var(--readonly-border)"><span class="unit">g — 8_Spectra row 22, col O</span></div>
+        <div class="field"><label>Final SSE/CLE Horizontal at Ti</label><input id="s_final_SSE_Ti" type="text" readonly="" value="0.625" style="background:var(--readonly-bg);color:var(--readonly-clr);font-weight:600;cursor:default;border:1px solid var(--readonly-border)"><span class="unit">g — 8_Spectra row 23, col O</span></div>
+        <div class="field"><label>Final OLE/OBE Horizontal at Tc</label><input id="s_final_OLE_Tc" type="text" readonly="" value="0.033" style="background:var(--readonly-bg);color:var(--readonly-clr);font-weight:600;cursor:default;border:1px solid var(--readonly-border)"><span class="unit">g — 8_Spectra row 25, col O</span></div>
+        <div class="field"><label>Final SSE/CLE Horizontal at Tc</label><input id="s_final_SSE_Tc" type="text" readonly="" value="0.054" style="background:var(--readonly-bg);color:var(--readonly-clr);font-weight:600;cursor:default;border:1px solid var(--readonly-border)"><span class="unit">g — 8_Spectra row 26, col O</span></div>
       </div>
       
       <div class="divider"></div>
@@ -3389,7 +3396,7 @@ BC1-BC3: 0.6 + 18/Ω² − 0.3/Ω³</div>
   </div>
 
   <!-- SVG canvas -->
-  <div id="tankGraphicWrap" style="width:100%;overflow-x:auto;background:var(--bg2);border-radius:8px;border:1px solid var(--border);padding:8px">
+  <div id="tankGraphicWrap" style="width:100%;overflow-x:auto;background:#0a1018;border-radius:3px;border:1px solid var(--border-strong);padding:8px">
     <svg id="tankSVG" width="100%" viewBox="0 0 1400 900" style="display:block;min-width:820px"><defs><linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0d1b2e" stop-opacity="1"></stop><stop offset="100%" stop-color="#07101d" stop-opacity="1"></stop></linearGradient><linearGradient id="concL" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#5c5c50" stop-opacity="1"></stop><stop offset="100%" stop-color="#3a3a30" stop-opacity="1"></stop></linearGradient><linearGradient id="concR" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#3a3a30" stop-opacity="1"></stop><stop offset="100%" stop-color="#5c5c50" stop-opacity="1"></stop></linearGradient><linearGradient id="domeG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#686858" stop-opacity="1"></stop><stop offset="100%" stop-color="#484840" stop-opacity="1"></stop></linearGradient><linearGradient id="perlL" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#7a6e48" stop-opacity="1"></stop><stop offset="100%" stop-color="#5a5030" stop-opacity="1"></stop></linearGradient><linearGradient id="perlR" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#5a5030" stop-opacity="1"></stop><stop offset="100%" stop-color="#7a6e48" stop-opacity="1"></stop></linearGradient><linearGradient id="steelG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3090e0" stop-opacity="1"></stop><stop offset="50%" stop-color="#1868b8" stop-opacity="1"></stop><stop offset="100%" stop-color="#0c4888" stop-opacity="1"></stop></linearGradient><linearGradient id="liqG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(56,210,170,0.22)" stop-opacity="1"></stop><stop offset="45%" stop-color="rgba(20,160,110,0.52)" stop-opacity="1"></stop><stop offset="100%" stop-color="rgba(8,100,60,0.72)" stop-opacity="1"></stop></linearGradient><linearGradient id="fgGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#d4c890" stop-opacity="1"></stop><stop offset="50%" stop-color="#c8bc80" stop-opacity="1"></stop><stop offset="100%" stop-color="#d4c890" stop-opacity="1"></stop></linearGradient><linearGradient id="baseG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#484840" stop-opacity="1"></stop><stop offset="100%" stop-color="#282820" stop-opacity="1"></stop></linearGradient><linearGradient id="panelG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0c1828" stop-opacity="1"></stop><stop offset="100%" stop-color="#080f1c" stop-opacity="1"></stop></linearGradient><filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="blur"></feGaussianBlur><feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter><marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M1 1L7 4L1 7" fill="none" stroke="#304858" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></marker><pattern id="hatch" patternUnits="userSpaceOnUse" width="12" height="12" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="12" stroke="#484838" stroke-width="1.2" opacity="0.5"></line></pattern><pattern id="deckHatch" patternUnits="userSpaceOnUse" width="8" height="8"><line x1="0" y1="0" x2="8" y2="8" stroke="#b0a870" stroke-width="0.8" opacity="0.5"></line><line x1="0" y1="8" x2="8" y2="0" stroke="#b0a870" stroke-width="0.8" opacity="0.5"></line></pattern></defs><rect x="0" y="0" width="1400" height="900" fill="url(#bgGrad)"></rect><line x1="20.0" y1="675.5" x2="810.0" y2="675.5" stroke="#101e30" stroke-width="0.5" opacity="0.6"></line><line x1="20.0" y1="581.0" x2="810.0" y2="581.0" stroke="#101e30" stroke-width="0.5" opacity="0.6"></line><line x1="20.0" y1="486.4" x2="810.0" y2="486.4" stroke="#101e30" stroke-width="0.5" opacity="0.6"></line><line x1="20.0" y1="391.9" x2="810.0" y2="391.9" stroke="#101e30" stroke-width="0.5" opacity="0.6"></line><line x1="20.0" y1="297.4" x2="810.0" y2="297.4" stroke="#101e30" stroke-width="0.5" opacity="0.6"></line><line x1="20.0" y1="202.9" x2="810.0" y2="202.9" stroke="#101e30" stroke-width="0.5" opacity="0.6"></line><line x1="20.0" y1="108.4" x2="810.0" y2="108.4" stroke="#101e30" stroke-width="0.5" opacity="0.6"></line><rect x="50.0" y="772.0" width="530.0" height="18" fill="url(#baseG)" stroke="#404030" stroke-width="0.8" rx="2"></rect><rect x="30.0" y="790.0" width="570.0" height="12" fill="#202018" stroke="#303028" stroke-width="0.5" rx="2"></rect><line x1="30.0" y1="802.0" x2="20.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="47.0" y1="802.0" x2="37.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="64.0" y1="802.0" x2="54.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="81.0" y1="802.0" x2="71.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="98.0" y1="802.0" x2="88.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="115.0" y1="802.0" x2="105.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="132.0" y1="802.0" x2="122.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="149.0" y1="802.0" x2="139.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="166.0" y1="802.0" x2="156.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="183.0" y1="802.0" x2="173.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="200.0" y1="802.0" x2="190.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="217.0" y1="802.0" x2="207.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="234.0" y1="802.0" x2="224.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="251.0" y1="802.0" x2="241.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="268.0" y1="802.0" x2="258.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="285.0" y1="802.0" x2="275.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="302.0" y1="802.0" x2="292.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><line x1="319.0" y1="802.0" x2="309.0" y2="812.0" stroke="#1a1a10" stroke-width="1.0"></line><rect x="96.0" y="760.0" width="26.0" height="16" fill="url(#baseG)" stroke="#404030" stroke-width="0.7" rx="1"></rect><rect x="508.0" y="760.0" width="26.0" height="16" fill="url(#baseG)" stroke="#404030" stroke-width="0.7" rx="1"></rect><rect x="136.0" y="744.0" width="358.0" height="14.0" fill="url(#fgGrad)" stroke="#b0a060" stroke-width="0.5"></rect><line x1="136.0" y1="750.0" x2="494.0" y2="750.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="136.0" y1="756.0" x2="494.0" y2="756.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="195.7" y1="744.0" x2="195.7" y2="750.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="255.3" y1="744.0" x2="255.3" y2="750.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="315.0" y1="744.0" x2="315.0" y2="750.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="374.7" y1="744.0" x2="374.7" y2="750.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="434.3" y1="744.0" x2="434.3" y2="750.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="165.8" y1="750.0" x2="165.8" y2="756.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="225.5" y1="750.0" x2="225.5" y2="756.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="285.2" y1="750.0" x2="285.2" y2="756.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="344.8" y1="750.0" x2="344.8" y2="756.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="404.5" y1="750.0" x2="404.5" y2="756.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="464.2" y1="750.0" x2="464.2" y2="756.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="195.7" y1="756.0" x2="195.7" y2="762.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="255.3" y1="756.0" x2="255.3" y2="762.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="315.0" y1="756.0" x2="315.0" y2="762.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="374.7" y1="756.0" x2="374.7" y2="762.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><line x1="434.3" y1="756.0" x2="434.3" y2="762.0" stroke="#907838" stroke-width="0.7" opacity="0.6"></line><rect x="100.0" y="82.0" width="22.0" height="688.0" fill="url(#concL)" stroke="#6a6858" stroke-width="0.8"></rect><rect x="508.0" y="82.0" width="22.0" height="688.0" fill="url(#concR)" stroke="#6a6858" stroke-width="0.8"></rect><rect x="100.0" y="82.0" width="22.0" height="688.0" fill="url(#hatch)" opacity="0.35"></rect><rect x="508.0" y="82.0" width="22.0" height="688.0" fill="url(#hatch)" opacity="0.35"></rect><rect x="99.0" y="678.0" width="24.0" height="80.0" fill="#2a8040" stroke="#1a6030" stroke-width="0.7" rx="2"></rect><rect x="507.0" y="678.0" width="24.0" height="80.0" fill="#2a8040" stroke="#1a6030" stroke-width="0.7" rx="2"></rect><line x1="102.0" y1="686.0" x2="120.0" y2="694.0" stroke="#1a6028" stroke-width="0.5" opacity="0.6"></line><line x1="510.0" y1="686.0" x2="528.0" y2="694.0" stroke="#1a6028" stroke-width="0.5" opacity="0.6"></line><line x1="102.0" y1="698.0" x2="120.0" y2="706.0" stroke="#1a6028" stroke-width="0.5" opacity="0.6"></line><line x1="510.0" y1="698.0" x2="528.0" y2="706.0" stroke="#1a6028" stroke-width="0.5" opacity="0.6"></line><line x1="102.0" y1="710.0" x2="120.0" y2="718.0" stroke="#1a6028" stroke-width="0.5" opacity="0.6"></line><line x1="510.0" y1="710.0" x2="528.0" y2="718.0" stroke="#1a6028" stroke-width="0.5" opacity="0.6"></line><line x1="102.0" y1="722.0" x2="120.0" y2="730.0" stroke="#1a6028" stroke-width="0.5" opacity="0.6"></line><line x1="510.0" y1="722.0" x2="528.0" y2="730.0" stroke="#1a6028" stroke-width="0.5" opacity="0.6"></line><line x1="102.0" y1="734.0" x2="120.0" y2="742.0" stroke="#1a6028" stroke-width="0.5" opacity="0.6"></line><line x1="510.0" y1="734.0" x2="528.0" y2="742.0" stroke="#1a6028" stroke-width="0.5" opacity="0.6"></line><line x1="102.0" y1="746.0" x2="120.0" y2="754.0" stroke="#1a6028" stroke-width="0.5" opacity="0.6"></line><line x1="510.0" y1="746.0" x2="528.0" y2="754.0" stroke="#1a6028" stroke-width="0.5" opacity="0.6"></line><path d="M 94.0 80.0 A 221.0 121.6 0 0 1 536.0 80.0 L 536.0 74.0 A 201.0 110.6 0 0 0 94.0 74.0 Z" fill="url(#domeG)" stroke="#6a6858" stroke-width="0.9"></path><path d="M 94.0 80.0 A 221.0 121.6 0 0 1 536.0 80.0 L 536.0 74.0 A 201.0 110.6 0 0 0 94.0 74.0 Z" fill="url(#hatch)" opacity="0.30"></path><rect x="131.0" y="75.0" width="368.0" height="14.0" fill="#706858" stroke="#888670" stroke-width="0.6" rx="2"></rect><rect x="131.0" y="75.0" width="368.0" height="14.0" fill="url(#deckHatch)" opacity="0.55"></rect><line x1="139.0" y1="66.0" x2="139.0" y2="75.0" stroke="#707060" stroke-width="1.2" opacity="0.55"></line><line x1="209.4" y1="66.0" x2="209.4" y2="75.0" stroke="#707060" stroke-width="1.2" opacity="0.55"></line><line x1="279.8" y1="66.0" x2="279.8" y2="75.0" stroke="#707060" stroke-width="1.2" opacity="0.55"></line><line x1="350.2" y1="66.0" x2="350.2" y2="75.0" stroke="#707060" stroke-width="1.2" opacity="0.55"></line><line x1="420.6" y1="66.0" x2="420.6" y2="75.0" stroke="#707060" stroke-width="1.2" opacity="0.55"></line><line x1="491.0" y1="66.0" x2="491.0" y2="75.0" stroke="#707060" stroke-width="1.2" opacity="0.55"></line><rect x="122.0" y="82.0" width="9.0" height="688.0" fill="url(#perlL)" opacity="0.80"></rect><rect x="499.0" y="82.0" width="9.0" height="688.0" fill="url(#perlR)" opacity="0.80"></rect><circle cx="124.2" cy="88.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="100.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="88.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="100.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="112.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="124.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="112.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="124.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="136.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="148.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="136.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="148.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="160.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="172.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="160.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="172.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="184.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="196.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="184.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="196.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="208.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="220.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="208.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="220.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="232.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="244.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="232.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="244.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="256.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="268.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="256.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="268.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="280.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="292.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="280.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="292.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="304.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="316.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="304.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="316.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="328.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="340.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="328.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="340.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="352.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="364.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="352.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="364.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="376.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="388.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="376.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="388.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="400.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="412.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="400.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="412.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="424.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="436.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="424.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="436.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="448.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="460.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="448.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="460.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="472.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="484.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="472.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="484.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="496.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="508.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="496.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="508.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="520.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="532.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="520.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="532.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="544.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="556.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="544.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="556.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="568.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="580.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="568.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="580.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="592.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="604.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="592.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="604.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="616.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="628.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="616.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="628.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="640.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="652.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="640.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="652.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="664.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="676.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="664.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="676.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="688.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="700.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="688.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="700.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="712.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="724.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="712.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="724.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="736.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="748.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="736.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="748.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="124.2" cy="760.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="127.4" cy="772.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><circle cx="505.8" cy="760.0" r="1.5" fill="#e0d080" opacity="0.45"></circle><circle cx="502.6" cy="772.0" r="1.1" fill="#e0d080" opacity="0.30"></circle><rect x="126.0" y="82.0" width="5" height="688.0" fill="#d8cc90" opacity="0.40"></rect><rect x="499.0" y="82.0" width="5" height="688.0" fill="#d8cc90" opacity="0.40"></rect><rect x="131.0" y="82.0" width="5.0" height="688.0" fill="url(#steelG)" stroke="#084070" stroke-width="0.9"></rect><rect x="494.0" y="82.0" width="5.0" height="688.0" fill="url(#steelG)" stroke="#084070" stroke-width="0.9"></rect><rect x="121.0" y="-402.1" width="12.0" height="106.5" fill="rgb(176,160,100)" opacity="0.92"></rect><rect x="497.0" y="-402.1" width="12.0" height="106.5" fill="rgb(176,160,100)" opacity="0.92"></rect><rect x="121.9" y="-295.6" width="11.1" height="106.5" fill="rgb(160,154,110)" opacity="0.92"></rect><rect x="497.0" y="-295.6" width="11.1" height="106.5" fill="rgb(160,154,110)" opacity="0.92"></rect><line x1="131.0" y1="-295.6" x2="499.0" y2="-295.6" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"></line><rect x="122.7" y="-189.1" width="10.3" height="106.5" fill="rgb(143,147,121)" opacity="0.92"></rect><rect x="497.0" y="-189.1" width="10.3" height="106.5" fill="rgb(143,147,121)" opacity="0.92"></rect><line x1="131.0" y1="-189.1" x2="499.0" y2="-189.1" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"></line><rect x="123.7" y="-82.6" width="9.3" height="106.5" fill="rgb(125,141,132)" opacity="0.92"></rect><rect x="497.0" y="-82.6" width="9.3" height="106.5" fill="rgb(125,141,132)" opacity="0.92"></rect><line x1="131.0" y1="-82.6" x2="499.0" y2="-82.6" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"></line><rect x="124.6" y="23.9" width="8.4" height="106.5" fill="rgb(105,133,144)" opacity="0.92"></rect><rect x="497.0" y="23.9" width="8.4" height="106.5" fill="rgb(105,133,144)" opacity="0.92"></rect><line x1="131.0" y1="23.9" x2="499.0" y2="23.9" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"></line><rect x="125.7" y="130.4" width="7.3" height="106.5" fill="rgb(85,126,157)" opacity="0.92"></rect><rect x="497.0" y="130.4" width="7.3" height="106.5" fill="rgb(85,126,157)" opacity="0.92"></rect><line x1="131.0" y1="130.4" x2="499.0" y2="130.4" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"></line><rect x="126.8" y="236.9" width="6.2" height="106.5" fill="rgb(64,118,170)" opacity="0.92"></rect><rect x="497.0" y="236.9" width="6.2" height="106.5" fill="rgb(64,118,170)" opacity="0.92"></rect><line x1="131.0" y1="236.9" x2="499.0" y2="236.9" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"></line><rect x="127.9" y="343.4" width="5.1" height="106.5" fill="rgb(41,109,185)" opacity="0.92"></rect><rect x="497.0" y="343.4" width="5.1" height="106.5" fill="rgb(41,109,185)" opacity="0.92"></rect><line x1="131.0" y1="343.4" x2="499.0" y2="343.4" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"></line><rect x="129.2" y="449.9" width="3.8" height="106.5" fill="rgb(16,100,200)" opacity="0.92"></rect><rect x="497.0" y="449.9" width="3.8" height="106.5" fill="rgb(16,100,200)" opacity="0.92"></rect><line x1="131.0" y1="449.9" x2="499.0" y2="449.9" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"></line><rect x="129.2" y="556.4" width="3.8" height="106.5" fill="rgb(16,100,200)" opacity="0.92"></rect><rect x="497.0" y="556.4" width="3.8" height="106.5" fill="rgb(16,100,200)" opacity="0.92"></rect><line x1="131.0" y1="556.4" x2="499.0" y2="556.4" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"></line><rect x="129.2" y="662.9" width="3.8" height="107.1" fill="rgb(16,100,200)" opacity="0.92"></rect><rect x="497.0" y="662.9" width="3.8" height="107.1" fill="rgb(16,100,200)" opacity="0.92"></rect><line x1="131.0" y1="662.9" x2="499.0" y2="662.9" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"></line><rect x="136.0" y="738.0" width="358.0" height="8" fill="url(#steelG)" stroke="#084070" stroke-width="0.7"></rect><rect x="136.0" y="89.0" width="358.0" height="648.0" fill="url(#liqG)"></rect><line x1="136.0" y1="-323.3" x2="494.0" y2="-323.3" stroke="#00ffcc" stroke-width="3.0" opacity="0.95" filter="url(#glow)"></line><line x1="141.0" y1="-318.3" x2="489.0" y2="-318.3" stroke="#00e8b0" stroke-width="0.7" opacity="0.2"></line><line x1="169.0" y1="-313.3" x2="461.0" y2="-313.3" stroke="#00e8b0" stroke-width="0.7" opacity="0.1"></line><line x1="197.0" y1="-308.3" x2="433.0" y2="-308.3" stroke="#00e8b0" stroke-width="0.7" opacity="0.1"></line><line x1="225.0" y1="-303.3" x2="405.0" y2="-303.3" stroke="#00e8b0" stroke-width="0.7" opacity="0.1"></line><rect x="133.5" y="-402.1" width="363.0" height="8" fill="#b0b088" stroke="#d0d0a8" stroke-width="0.6" rx="2"></rect><rect x="136.0" y="-394.1" width="358.0" height="30.0" fill="#707050" opacity="0.70" rx="1"></rect><rect x="136.0" y="-394.1" width="358.0" height="30.0" fill="url(#deckHatch)" opacity="0.50"></rect><line x1="143.0" y1="89.0" x2="143.0" y2="-402.1" stroke="#909070" stroke-width="1.1" opacity="0.50"></line><line x1="192.1" y1="89.0" x2="192.1" y2="-402.1" stroke="#909070" stroke-width="1.1" opacity="0.50"></line><line x1="241.3" y1="89.0" x2="241.3" y2="-402.1" stroke="#909070" stroke-width="1.1" opacity="0.50"></line><line x1="290.4" y1="89.0" x2="290.4" y2="-402.1" stroke="#909070" stroke-width="1.1" opacity="0.50"></line><line x1="339.6" y1="89.0" x2="339.6" y2="-402.1" stroke="#909070" stroke-width="1.1" opacity="0.50"></line><line x1="388.7" y1="89.0" x2="388.7" y2="-402.1" stroke="#909070" stroke-width="1.1" opacity="0.50"></line><line x1="437.9" y1="89.0" x2="437.9" y2="-402.1" stroke="#909070" stroke-width="1.1" opacity="0.50"></line><line x1="487.0" y1="89.0" x2="487.0" y2="-402.1" stroke="#909070" stroke-width="1.1" opacity="0.50"></line><rect x="161.0" y="-32.7" width="7" height="22" fill="#3c4848" stroke="#526060" stroke-width="0.6" rx="2"></rect><rect x="159.0" y="-34.7" width="11" height="4" fill="#4a5858" rx="1"></rect><circle cx="164.5" cy="-38.7" r="4" fill="none" stroke="#4a5858" stroke-width="1.6"></circle><circle cx="164.5" cy="-38.7" r="1.4" fill="#4a5858"></circle><rect x="204.0" y="-49.6" width="7" height="22" fill="#3c4848" stroke="#526060" stroke-width="0.6" rx="2"></rect><rect x="202.0" y="-51.6" width="11" height="4" fill="#4a5858" rx="1"></rect><circle cx="207.5" cy="-55.6" r="4" fill="none" stroke="#4a5858" stroke-width="1.6"></circle><circle cx="207.5" cy="-55.6" r="1.4" fill="#4a5858"></circle><rect x="238.4" y="-57.9" width="7" height="22" fill="#3c4848" stroke="#526060" stroke-width="0.6" rx="2"></rect><rect x="236.4" y="-59.9" width="11" height="4" fill="#4a5858" rx="1"></rect><circle cx="241.9" cy="-63.9" r="4" fill="none" stroke="#4a5858" stroke-width="1.6"></circle><circle cx="241.9" cy="-63.9" r="1.4" fill="#4a5858"></circle><rect x="272.8" y="-62.7" width="7" height="22" fill="#3c4848" stroke="#526060" stroke-width="0.6" rx="2"></rect><rect x="270.8" y="-64.7" width="11" height="4" fill="#4a5858" rx="1"></rect><circle cx="276.3" cy="-68.7" r="4" fill="none" stroke="#4a5858" stroke-width="1.6"></circle><circle cx="276.3" cy="-68.7" r="1.4" fill="#4a5858"></circle><rect x="298.6" y="-64.3" width="7" height="22" fill="#3c4848" stroke="#526060" stroke-width="0.6" rx="2"></rect><rect x="296.6" y="-66.3" width="11" height="4" fill="#4a5858" rx="1"></rect><circle cx="302.1" cy="-70.3" r="4" fill="none" stroke="#4a5858" stroke-width="1.6"></circle><circle cx="302.1" cy="-70.3" r="1.4" fill="#4a5858"></circle><rect x="311.5" y="-64.6" width="7" height="22" fill="#3c4848" stroke="#526060" stroke-width="0.6" rx="2"></rect><rect x="309.5" y="-66.6" width="11" height="4" fill="#4a5858" rx="1"></rect><circle cx="315.0" cy="-70.6" r="4" fill="none" stroke="#4a5858" stroke-width="1.6"></circle><circle cx="315.0" cy="-70.6" r="1.4" fill="#4a5858"></circle><rect x="324.4" y="-64.3" width="7" height="22" fill="#3c4848" stroke="#526060" stroke-width="0.6" rx="2"></rect><rect x="322.4" y="-66.3" width="11" height="4" fill="#4a5858" rx="1"></rect><circle cx="327.9" cy="-70.3" r="4" fill="none" stroke="#4a5858" stroke-width="1.6"></circle><circle cx="327.9" cy="-70.3" r="1.4" fill="#4a5858"></circle><rect x="350.2" y="-62.7" width="7" height="22" fill="#3c4848" stroke="#526060" stroke-width="0.6" rx="2"></rect><rect x="348.2" y="-64.7" width="11" height="4" fill="#4a5858" rx="1"></rect><circle cx="353.7" cy="-68.7" r="4" fill="none" stroke="#4a5858" stroke-width="1.6"></circle><circle cx="353.7" cy="-68.7" r="1.4" fill="#4a5858"></circle><rect x="384.6" y="-57.9" width="7" height="22" fill="#3c4848" stroke="#526060" stroke-width="0.6" rx="2"></rect><rect x="382.6" y="-59.9" width="11" height="4" fill="#4a5858" rx="1"></rect><circle cx="388.1" cy="-63.9" r="4" fill="none" stroke="#4a5858" stroke-width="1.6"></circle><circle cx="388.1" cy="-63.9" r="1.4" fill="#4a5858"></circle><rect x="419.0" y="-49.6" width="7" height="22" fill="#3c4848" stroke="#526060" stroke-width="0.6" rx="2"></rect><rect x="417.0" y="-51.6" width="11" height="4" fill="#4a5858" rx="1"></rect><circle cx="422.5" cy="-55.6" r="4" fill="none" stroke="#4a5858" stroke-width="1.6"></circle><circle cx="422.5" cy="-55.6" r="1.4" fill="#4a5858"></circle><rect x="462.0" y="-32.7" width="7" height="22" fill="#3c4848" stroke="#526060" stroke-width="0.6" rx="2"></rect><rect x="460.0" y="-34.7" width="11" height="4" fill="#4a5858" rx="1"></rect><circle cx="465.5" cy="-38.7" r="4" fill="none" stroke="#4a5858" stroke-width="1.6"></circle><circle cx="465.5" cy="-38.7" r="1.4" fill="#4a5858"></circle><rect x="222.5" y="-343.3" width="6" height="1081.3" fill="#607888" stroke="#4a6070" stroke-width="0.5" rx="2"></rect><rect x="217.5" y="726.0" width="16" height="14" fill="#4a6070" stroke="#3a5060" stroke-width="0.6" rx="2"></rect><rect x="401.5" y="-343.3" width="6" height="1081.3" fill="#607888" stroke="#4a6070" stroke-width="0.5" rx="2"></rect><rect x="396.5" y="726.0" width="16" height="14" fill="#4a6070" stroke="#3a5060" stroke-width="0.6" rx="2"></rect><rect x="136.0" y="323.1" width="30" height="8" fill="#00c8f0" opacity="0.90" rx="2"></rect><rect x="464.0" y="323.1" width="30" height="8" fill="#00c8f0" opacity="0.90" rx="2"></rect><rect x="144.0" y="325.1" width="16" height="4" fill="#00c8f0" opacity="0.35"></rect><rect x="470.0" y="325.1" width="16" height="4" fill="#00c8f0" opacity="0.35"></rect><line x1="166.0" y1="327.1" x2="464.0" y2="327.1" stroke="#00c8f0" stroke-width="0.7" stroke-dasharray="9 6" opacity="0.22"></line><rect x="136.0" y="148.2" width="30" height="8" fill="#00b0d8" opacity="0.90" rx="2"></rect><rect x="464.0" y="148.2" width="30" height="8" fill="#00b0d8" opacity="0.90" rx="2"></rect><rect x="144.0" y="150.2" width="16" height="4" fill="#00b0d8" opacity="0.35"></rect><rect x="470.0" y="150.2" width="16" height="4" fill="#00b0d8" opacity="0.35"></rect><line x1="166.0" y1="152.2" x2="464.0" y2="152.2" stroke="#00b0d8" stroke-width="0.7" stroke-dasharray="9 6" opacity="0.22"></line><rect x="139.0" y="738.0" width="6" height="20" fill="#c89018" stroke="#906010" stroke-width="0.5" rx="1.5"></rect><rect x="170.5" y="738.0" width="6" height="20" fill="#c89018" stroke="#906010" stroke-width="0.5" rx="1.5"></rect><rect x="201.9" y="738.0" width="6" height="20" fill="#c89018" stroke="#906010" stroke-width="0.5" rx="1.5"></rect><rect x="233.4" y="738.0" width="6" height="20" fill="#c89018" stroke="#906010" stroke-width="0.5" rx="1.5"></rect><rect x="264.8" y="738.0" width="6" height="20" fill="#c89018" stroke="#906010" stroke-width="0.5" rx="1.5"></rect><rect x="296.3" y="738.0" width="6" height="20" fill="#c89018" stroke="#906010" stroke-width="0.5" rx="1.5"></rect><rect x="327.7" y="738.0" width="6" height="20" fill="#c89018" stroke="#906010" stroke-width="0.5" rx="1.5"></rect><rect x="359.2" y="738.0" width="6" height="20" fill="#c89018" stroke="#906010" stroke-width="0.5" rx="1.5"></rect><rect x="390.6" y="738.0" width="6" height="20" fill="#c89018" stroke="#906010" stroke-width="0.5" rx="1.5"></rect><rect x="422.1" y="738.0" width="6" height="20" fill="#c89018" stroke="#906010" stroke-width="0.5" rx="1.5"></rect><rect x="453.5" y="738.0" width="6" height="20" fill="#c89018" stroke="#906010" stroke-width="0.5" rx="1.5"></rect><rect x="485.0" y="738.0" width="6" height="20" fill="#c89018" stroke="#906010" stroke-width="0.5" rx="1.5"></rect><line x1="136.0" y1="710.1" x2="494.0" y2="710.1" stroke="#ffd040" stroke-width="0.9" opacity="0.88" stroke-dasharray="5 3"></line><polygon points="133.0,704.1 133.0,716.1 146.0,710.1" fill="#ffd040" opacity="0.90"></polygon><line x1="494.0" y1="710.1" x2="542.0" y2="710.1" stroke="#ffd040" stroke-width="0.4" opacity="0.4"></line><text x="545.0" y="708.1" font-family="IBM Plex Mono,monospace" font-size="8" font-weight="600" fill="#ffd040">LLL</text><text x="545.0" y="719.1" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#ffd040" opacity="0.70">1900 mm</text><line x1="136.0" y1="713.3" x2="494.0" y2="713.3" stroke="#ff8820" stroke-width="0.8" opacity="0.88" stroke-dasharray="4 3"></line><polygon points="133.0,707.3 133.0,719.3 146.0,713.3" fill="#ff8820" opacity="0.90"></polygon><line x1="494.0" y1="713.3" x2="542.0" y2="713.3" stroke="#ff8820" stroke-width="0.4" opacity="0.4"></line><text x="545.0" y="711.3" font-family="IBM Plex Mono,monospace" font-size="8" font-weight="600" fill="#ff8820">LAL</text><text x="545.0" y="722.3" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#ff8820" opacity="0.70">1800 mm</text><line x1="136.0" y1="732.2" x2="494.0" y2="732.2" stroke="#ff3020" stroke-width="0.7" opacity="0.88" stroke-dasharray="3 4"></line><polygon points="133.0,726.2 133.0,738.2 146.0,732.2" fill="#ff3020" opacity="0.90"></polygon><line x1="494.0" y1="732.2" x2="542.0" y2="732.2" stroke="#ff3020" stroke-width="0.4" opacity="0.4"></line><text x="545.0" y="730.2" font-family="IBM Plex Mono,monospace" font-size="8" font-weight="600" fill="#ff3020">Emergency</text><text x="545.0" y="741.2" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#ff3020" opacity="0.70">1200 mm</text><text x="315.0" y="198.4" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="30" font-weight="700" fill="rgba(0,255,196,0.40)" filter="url(#glow)">C₂H₄</text><text x="315.0" y="218.4" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="700" fill="rgba(0,210,160,0.45)" letter-spacing="0.18em">ETHYLENE</text><text x="315.0" y="232.4" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="rgba(0,180,130,0.45)">-196.0°C  ·  SG 0.48</text><line x1="48.0" y1="-402.1" x2="48.0" y2="770.0" stroke="#2a4a62" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"></line><text x="44.0" y="184.0" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#2a4a62" transform="rotate(-90,44.0,184.0)">37.2m inner</text><line x1="28.0" y1="80.0" x2="28.0" y2="770.0" stroke="#2a4a62" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"></line><text x="24.0" y="425.0" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#2a4a62" transform="rotate(-90,24.0,425.0)">21.9m outer</text><line x1="100.0" y1="30.0" x2="530.0" y2="30.0" stroke="#2a4a62" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"></line><text x="315.0" y="26.0" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#2a4a62">47.0m OD</text><line x1="136.0" y1="16.0" x2="494.0" y2="16.0" stroke="#2a4a62" stroke-width="0.9" marker-start="url(#ar)" marker-end="url(#ar)"></line><text x="315.0" y="12.0" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#2a4a62">86.0m ID</text><line x1="315.0" y1="68.0" x2="84.0" y2="68.0" stroke="#909080" stroke-width="0.5" stroke-dasharray="3 2" opacity="0.65"></line><circle cx="315.0" cy="68.0" r="2.5" fill="#909080" opacity="0.60"></circle><text x="81.0" y="72.0" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#909080" opacity="0.85">Reinforced concrete dome</text><line x1="315.0" y1="82.0" x2="84.0" y2="82.0" stroke="#a8a080" stroke-width="0.5" stroke-dasharray="3 2" opacity="0.65"></line><circle cx="315.0" cy="82.0" r="2.5" fill="#a8a080" opacity="0.60"></circle><text x="81.0" y="86.0" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#a8a080" opacity="0.85">Insulated suspended roof</text><line x1="111.0" y1="345.0" x2="84.0" y2="345.0" stroke="#808070" stroke-width="0.5" stroke-dasharray="3 2" opacity="0.65"></line><circle cx="111.0" cy="345.0" r="2.5" fill="#808070" opacity="0.60"></circle><text x="81.0" y="349.0" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#808070" opacity="0.85">Prestressed concrete wall</text><line x1="126.0" y1="417.0" x2="84.0" y2="417.0" stroke="#c0b060" stroke-width="0.5" stroke-dasharray="3 2" opacity="0.65"></line><circle cx="126.0" cy="417.0" r="2.5" fill="#c0b060" opacity="0.60"></circle><text x="81.0" y="421.0" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#c0b060" opacity="0.85">Perlite insulation</text><line x1="128.0" y1="445.0" x2="84.0" y2="445.0" stroke="#c8be88" stroke-width="0.5" stroke-dasharray="3 2" opacity="0.65"></line><circle cx="128.0" cy="445.0" r="2.5" fill="#c8be88" opacity="0.60"></circle><text x="81.0" y="449.0" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#c8be88" opacity="0.85">Glass wool (600mm)</text><line x1="133.5" y1="501.0" x2="84.0" y2="501.0" stroke="#3080c8" stroke-width="0.5" stroke-dasharray="3 2" opacity="0.65"></line><circle cx="133.5" cy="501.0" r="2.5" fill="#3080c8" opacity="0.60"></circle><text x="81.0" y="505.0" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#3080c8" opacity="0.85">9% Ni inner tank</text><line x1="111.0" y1="718.0" x2="84.0" y2="718.0" stroke="#40a060" stroke-width="0.5" stroke-dasharray="3 2" opacity="0.65"></line><circle cx="111.0" cy="718.0" r="2.5" fill="#40a060" opacity="0.60"></circle><text x="81.0" y="722.0" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#40a060" opacity="0.85">Corner protection</text><line x1="243.4" y1="751.0" x2="84.0" y2="751.0" stroke="#c8bc60" stroke-width="0.5" stroke-dasharray="3 2" opacity="0.65"></line><circle cx="243.4" cy="751.0" r="2.5" fill="#c8bc60" opacity="0.60"></circle><text x="81.0" y="755.0" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#c8bc60" opacity="0.85">Foamglass insulation</text><line x1="315.0" y1="767.0" x2="84.0" y2="767.0" stroke="#707060" stroke-width="0.5" stroke-dasharray="3 2" opacity="0.65"></line><circle cx="315.0" cy="767.0" r="2.5" fill="#707060" opacity="0.60"></circle><text x="81.0" y="771.0" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#707060" opacity="0.85">Concrete ring</text><rect x="560.0" y="60.0" width="810.0" height="730.0" fill="url(#panelG)" stroke="#141e2e" stroke-width="0.8" rx="8"></rect><rect x="560.0" y="60.0" width="810.0" height="54" fill="#0a1830" stroke="none" rx="8"></rect><rect x="560.0" y="106.0" width="810.0" height="8" fill="#0a1830"></rect><line x1="560.0" y1="114.0" x2="1370.0" y2="114.0" stroke="#162840" stroke-width="1.2"></line><rect x="560.0" y="60.0" width="5" height="54" fill="#0ea5e9" rx="2.5"></rect><text x="578.0" y="80.0" font-family="IBM Plex Mono,monospace" font-size="13.5" font-weight="700" fill="#ddf0ff" letter-spacing="0.07em">CRYOGENIC LNG STORAGE TANK</text><text x="578.0" y="98.0" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#406888">Full Containment  ·  9% Ni Inner  ·  Prestressed Concrete Outer  ·  EN 14620</text><rect x="568.0" y="124.0" width="188.0" height="58.0" fill="#091625" stroke="#152535" stroke-width="0.6" rx="5"></rect><rect x="568.0" y="124.0" width="3.5" height="58.0" fill="#0ea5e9" rx="2"></rect><text x="580.0" y="142.0" font-family="IBM Plex Mono,monospace" font-size="8" fill="#3a6888" text-transform="uppercase" letter-spacing="0.05em">Inner Diameter</text><text x="580.0" y="166.0" font-family="IBM Plex Mono,monospace" font-size="20" font-weight="700" fill="#c8e8ff">86.0 m</text><rect x="763.0" y="124.0" width="188.0" height="58.0" fill="#091625" stroke="#152535" stroke-width="0.6" rx="5"></rect><rect x="763.0" y="124.0" width="3.5" height="58.0" fill="#0ea5e9" rx="2"></rect><text x="775.0" y="142.0" font-family="IBM Plex Mono,monospace" font-size="8" fill="#3a6888" text-transform="uppercase" letter-spacing="0.05em">Inner Height</text><text x="775.0" y="166.0" font-family="IBM Plex Mono,monospace" font-size="20" font-weight="700" fill="#c8e8ff">37.2 m</text><rect x="958.0" y="124.0" width="188.0" height="58.0" fill="#091625" stroke="#152535" stroke-width="0.6" rx="5"></rect><rect x="958.0" y="124.0" width="3.5" height="58.0" fill="#38bdf8" rx="2"></rect><text x="970.0" y="142.0" font-family="IBM Plex Mono,monospace" font-size="8" fill="#3a6888" text-transform="uppercase" letter-spacing="0.05em">Outer Diameter</text><text x="970.0" y="166.0" font-family="IBM Plex Mono,monospace" font-size="20" font-weight="700" fill="#c8e8ff">47.0 m</text><rect x="1153.0" y="124.0" width="188.0" height="58.0" fill="#091625" stroke="#152535" stroke-width="0.6" rx="5"></rect><rect x="1153.0" y="124.0" width="3.5" height="58.0" fill="#38bdf8" rx="2"></rect><text x="1165.0" y="142.0" font-family="IBM Plex Mono,monospace" font-size="8" fill="#3a6888" text-transform="uppercase" letter-spacing="0.05em">Outer Height</text><text x="1165.0" y="166.0" font-family="IBM Plex Mono,monospace" font-size="20" font-weight="700" fill="#c8e8ff">21.9 m</text><rect x="568.0" y="189.0" width="188.0" height="58.0" fill="#091625" stroke="#152535" stroke-width="0.6" rx="5"></rect><rect x="568.0" y="189.0" width="3.5" height="58.0" fill="#34d399" rx="2"></rect><text x="580.0" y="207.0" font-family="IBM Plex Mono,monospace" font-size="8" fill="#3a6888" text-transform="uppercase" letter-spacing="0.05em">Normal Op. Level</text><text x="580.0" y="231.0" font-family="IBM Plex Mono,monospace" font-size="20" font-weight="700" fill="#c8e8ff">34.7 m</text><rect x="763.0" y="189.0" width="188.0" height="58.0" fill="#091625" stroke="#152535" stroke-width="0.6" rx="5"></rect><rect x="763.0" y="189.0" width="3.5" height="58.0" fill="#fbbf24" rx="2"></rect><text x="775.0" y="207.0" font-family="IBM Plex Mono,monospace" font-size="8" fill="#3a6888" text-transform="uppercase" letter-spacing="0.05em">Max Design Level</text><text x="775.0" y="231.0" font-family="IBM Plex Mono,monospace" font-size="20" font-weight="700" fill="#c8e8ff">35.8 m</text><rect x="958.0" y="189.0" width="188.0" height="58.0" fill="#091625" stroke="#152535" stroke-width="0.6" rx="5"></rect><rect x="958.0" y="189.0" width="3.5" height="58.0" fill="#a78bfa" rx="2"></rect><text x="970.0" y="207.0" font-family="IBM Plex Mono,monospace" font-size="8" fill="#3a6888" text-transform="uppercase" letter-spacing="0.05em">Specific Gravity</text><text x="970.0" y="231.0" font-family="IBM Plex Mono,monospace" font-size="20" font-weight="700" fill="#c8e8ff">0.48</text><rect x="1153.0" y="189.0" width="188.0" height="58.0" fill="#091625" stroke="#152535" stroke-width="0.6" rx="5"></rect><rect x="1153.0" y="189.0" width="3.5" height="58.0" fill="#818cf8" rx="2"></rect><text x="1165.0" y="207.0" font-family="IBM Plex Mono,monospace" font-size="8" fill="#3a6888" text-transform="uppercase" letter-spacing="0.05em">Design Temp</text><text x="1165.0" y="231.0" font-family="IBM Plex Mono,monospace" font-size="20" font-weight="700" fill="#c8e8ff">-196.0 °C</text><rect x="568.0" y="264.0" width="794.0" height="66" fill="#06141e" stroke="#102830" stroke-width="0.6" rx="6"></rect><rect x="568.0" y="264.0" width="3.5" height="66" fill="#34d399" rx="2"></rect><text x="580.0" y="280.0" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#34d399" letter-spacing="0.14em">CAPACITY  &amp;  WEIGHT</text><text x="578.0" y="294.0" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#1a5040">Net Working Cap.</text><text x="578.0" y="312.0" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="700" fill="#50e8b0">189273.100 m³</text><text x="775.5" y="294.0" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#1a5040">Stored Capacity</text><text x="775.5" y="312.0" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="700" fill="#50e8b0">200262.202 m³</text><text x="973.0" y="294.0" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#1a5040">Shell Weight</text><text x="973.0" y="312.0" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="700" fill="#50e8b0">1530205.0 kg</text><text x="1170.5" y="294.0" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#1a5040">Grand Total Wt</text><text x="1170.5" y="312.0" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="700" fill="#50e8b0">3066505 kg</text><rect x="568.0" y="340.0" width="794.0" height="76" fill="#0b0c1e" stroke="#1c1a3c" stroke-width="0.6" rx="6"></rect><rect x="568.0" y="340.0" width="3.5" height="76" fill="#a78bfa" rx="2"></rect><text x="580.0" y="356.0" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#a78bfa" letter-spacing="0.14em">SEISMIC ANALYSIS</text><text x="578.0" y="372.0" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#5040a0">Impulsive Period Ti</text><text x="578.0" y="388.0" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="700" fill="#c0b0ff">0.8344 s</text><text x="841.3" y="372.0" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#5040a0">Convective Period Tc</text><text x="841.3" y="388.0" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="700" fill="#c0b0ff">0.5425 s</text><text x="1104.7" y="372.0" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#5040a0">Base Shear OLE</text><text x="1104.7" y="388.0" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="700" fill="#c0b0ff">10.1583 MN</text><text x="578.0" y="398.0" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#5040a0">Ring Moment OLE</text><text x="578.0" y="414.0" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="700" fill="#c0b0ff">0.4621 MN·m</text><text x="841.3" y="398.0" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#5040a0">Freeboard OLE</text><text x="841.3" y="414.0" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="700" fill="#c0b0ff">579.6 mm</text><text x="1104.7" y="398.0" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="#5040a0">Freeboard CLE</text><text x="1104.7" y="414.0" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="700" fill="#c0b0ff">1394.9 mm</text><rect x="568.0" y="426.0" width="794.0" height="352.0" fill="#070e18" stroke="#102030" stroke-width="0.6" rx="6"></rect><rect x="568.0" y="426.0" width="3.5" height="352.0" fill="#00c8f0" rx="2"></rect><text x="580.0" y="442.0" font-family="IBM Plex Mono,monospace" font-size="8.5" fill="#00c8f0" letter-spacing="0.08em">INTERNAL STIFFENERS  (EN 1993-1-6 / EN 1993-4-2)</text><text x="580.0" y="462.0" font-family="IBM Plex Mono,monospace" font-size="18" font-weight="700" fill="#40d8f0">Required: 5</text><rect x="710.0" y="452.0" width="130" height="22" fill="#0c2030" stroke="#144050" stroke-width="0.5" rx="3"></rect><text x="718.0" y="467.0" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#30b8d8">IS-1: 14059 mm</text><rect x="850.0" y="452.0" width="130" height="22" fill="#0c2030" stroke="#144050" stroke-width="0.5" rx="3"></rect><text x="858.0" y="467.0" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#30b8d8">IS-2: 19609 mm</text><rect x="990.0" y="452.0" width="130" height="22" fill="#0c2030" stroke="#144050" stroke-width="0.5" rx="3"></rect><text x="998.0" y="467.0" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#30b8d8">IS-3: 22521 mm</text><rect x="1130.0" y="452.0" width="130" height="22" fill="#0c2030" stroke="#144050" stroke-width="0.5" rx="3"></rect><text x="1138.0" y="467.0" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#30b8d8">IS-4: 25159 mm</text><rect x="1270.0" y="452.0" width="130" height="22" fill="#0c2030" stroke="#144050" stroke-width="0.5" rx="3"></rect><text x="1278.0" y="467.0" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="600" fill="#30b8d8">IS-5: 27677 mm</text><line x1="568.0" y1="752.0" x2="1362.0" y2="752.0" stroke="#101e2c" stroke-width="0.7"></line><rect x="572.0" y="758.0" width="10" height="7" fill="#5c5c50" rx="1.5"></rect><text x="585.0" y="765.0" font-family="IBM Plex Mono,monospace" font-size="7" fill="#2a4860">Prestressed concrete</text><rect x="671.3" y="758.0" width="10" height="7" fill="#7a6e48" rx="1.5"></rect><text x="684.3" y="765.0" font-family="IBM Plex Mono,monospace" font-size="7" fill="#2a4860">Perlite insulation</text><rect x="770.5" y="758.0" width="10" height="7" fill="#d8cc90" rx="1.5"></rect><text x="783.5" y="765.0" font-family="IBM Plex Mono,monospace" font-size="7" fill="#2a4860">Glass wool</text><rect x="869.8" y="758.0" width="10" height="7" fill="#1868b8" rx="1.5"></rect><text x="882.8" y="765.0" font-family="IBM Plex Mono,monospace" font-size="7" fill="#2a4860">9% Ni steel</text><rect x="969.0" y="758.0" width="10" height="7" fill="#2a8040" rx="1.5"></rect><text x="982.0" y="765.0" font-family="IBM Plex Mono,monospace" font-size="7" fill="#2a4860">Corner protection</text><rect x="1068.3" y="758.0" width="10" height="7" fill="#c8bc60" rx="1.5"></rect><text x="1081.3" y="765.0" font-family="IBM Plex Mono,monospace" font-size="7" fill="#2a4860">Foamglass</text><rect x="1167.5" y="758.0" width="10" height="7" fill="#00ffcc" rx="1.5"></rect><text x="1180.5" y="765.0" font-family="IBM Plex Mono,monospace" font-size="7" fill="#2a4860">NOL surface</text><rect x="1266.8" y="758.0" width="10" height="7" fill="#00c8f0" rx="1.5"></rect><text x="1279.8" y="765.0" font-family="IBM Plex Mono,monospace" font-size="7" fill="#2a4860">Ring stiffeners</text><text x="100.0" y="26" font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600" fill="#1a3050" letter-spacing="0.05em">T-1003  ·  M/s Shell  ·  Job B965</text></svg>
   </div>
 
@@ -3526,7 +3533,7 @@ async function exportPDF() {
   const checkPage = (needed=30) => { if (y + needed > doc.internal.pageSize.getHeight()-10) { doc.addPage(); y = 15; } };
 
   // === HEADER ===
-  doc.setFillColor(15,17,23);
+  doc.setFillColor(31,78,121);
   doc.rect(0, 0, W, 22, 'F');
   doc.setFontSize(14); doc.setTextColor(255,255,255); doc.setFont(undefined,'bold');
   doc.text('DWST_EN14620 – Seismic Analysis Calculator', 14, 10);
@@ -7434,17 +7441,17 @@ function populateSpectrumTable() {
       <td style="padding:8px;text-align:center">
         <input type="number" step="0.01" value="${row.period}" 
                onchange="updateSpectrumValue(${idx}, 'period', this.value)"
-               style="width:100px;padding:6px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);text-align:center;font-size:13px">
+               style="width:100px;padding:6px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:2px;color:var(--input-clr);font-weight:600;text-align:center;font-size:13px">
       </td>
       <td style="padding:8px;text-align:center">
         <input type="number" step="0.001" value="${row.obe_h.toFixed(6)}" 
                onchange="updateSpectrumValue(${idx}, 'obe_h', this.value)"
-               style="width:120px;padding:6px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);text-align:center;font-size:13px">
+               style="width:120px;padding:6px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:2px;color:var(--input-clr);font-weight:600;text-align:center;font-size:13px">
       </td>
       <td style="padding:8px;text-align:center">
         <input type="number" step="0.001" value="${row.sse_h.toFixed(6)}" 
                onchange="updateSpectrumValue(${idx}, 'sse_h', this.value)"
-               style="width:120px;padding:6px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);text-align:center;font-size:13px">
+               style="width:120px;padding:6px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:2px;color:var(--input-clr);font-weight:600;text-align:center;font-size:13px">
       </td>
     `;
     tbody.appendChild(tr);
