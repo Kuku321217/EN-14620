@@ -571,12 +571,17 @@
 <div class="page" id="page1">
 
   <div class="info-banner">
-    ℹ &nbsp;Enter the <strong>Course Width (m)</strong> for each active course. The adopted thickness cells (blue) are user-editable — enter your selected plate thickness. Required thicknesses are computed automatically per API-620.
+    ℹ &nbsp;Enter the <strong>Course Width (m)</strong> for each active course. The adopted thickness cells (blue) are user-editable — enter your selected plate thickness. Required thicknesses are computed automatically.
   </div>
 
   <div class="section">
     <div class="section-header"><div class="section-num">1</div><h2>2.1 Shell Course Calculation</h2></div>
     <div class="section-body" style="overflow-x:auto">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+        <button type="button" class="btn btn-primary" style="padding:6px 14px;font-size:12px" onclick="addCourse()">＋ Add Course</button>
+        <button type="button" class="btn" style="padding:6px 14px;font-size:12px;background:var(--panel-2);border:1px solid var(--border-strong);color:var(--warn)" onclick="deleteCourse()">－ Delete Last Course</button>
+        <span style="font-size:11px;color:var(--muted)">Courses: <strong id="courseCount" style="color:var(--accent)">13</strong> — new courses are added at the bottom; delete removes the last row.</span>
+      </div>
       <table class="courses-table">
         <thead>
           <tr>
@@ -739,7 +744,7 @@
         <div class="field"><label>Radial Width (Code) – inside shell to lap</label><input id="ann_w_code" type="text" readonly="" value="500.000"><span class="unit">mm — EN14620-2 Cl. 5.2.1.1.1</span></div>
         <div class="field"><label>User Input Radial Width</label><input id="ann_w_user" type="number" step="10" value="1600" oninput="computeAnnularPlate()"><span class="unit">mm</span></div>
         <div class="field"><label>Bottom Plate to Annular Plate Lap</label><input id="ann_lap" type="number" step="5" value="60" oninput="computeAnnularPlate()"><span class="unit">mm — min 5×t_ann (API-650)</span></div>
-        <div class="field"><label>Min Projection Outside Shell</label><input id="ann_proj" type="number" step="5" value="60" oninput="computeAnnularPlate()"><span class="unit">mm — 2″ per API-620 Q-3.5.1</span></div>
+        <div class="field"><label>Min Projection Outside Shell</label><input id="ann_proj" type="number" step="5" value="60" oninput="computeAnnularPlate()"><span class="unit">mm — 2″ minimum</span></div>
       </div>
       <div class="divider"></div>
       <table class="result-table">
@@ -752,7 +757,7 @@
     <tr><td class="label">Radial Width (Code minimum)</td><td class="sym">w_code</td><td class="formula">500 mm (EN14620-2 Cl.5.2.1.1.1)</td><td class="value">500</td><td>mm</td></tr>
     <tr><td class="label">Radial Width (User input)</td><td class="sym">w_user</td><td class="formula">User input</td><td class="value">1600</td><td>mm</td></tr>
     <tr><td class="label">Bottom Plate to Annular Plate Lap</td><td class="sym">lap</td><td class="formula">min 5 × t_ann (API-650)</td><td class="value">60</td><td>mm</td></tr>
-    <tr><td class="label">Min Projection Outside Shell</td><td class="sym">proj</td><td class="formula">2″ per API-620 Q-3.5.1</td><td class="value">60</td><td>mm</td></tr>
+    <tr><td class="label">Min Projection Outside Shell</td><td class="sym">proj</td><td class="formula">2″ minimum</td><td class="value">60</td><td>mm</td></tr>
     <tr style="background:rgba(0,201,167,0.07)"><td class="label">Calculated total annular plate width (EN-14620)</td><td class="sym">w_calc</td><td class="formula">w_user + lap + proj + t_shell = 600+60+60+24.9</td><td class="value">1750.0</td><td>mm (Excel row 39: 744.9)</td></tr>
     <tr style="background:rgba(0,201,167,0.07)"><td class="label">User Input for Annular Plate total width</td><td class="sym">w_user</td><td class="formula">User input (Excel row 40)</td><td class="value">1600</td><td>mm (Excel: 800mm)</td></tr>
     <tr><td class="label">Annular Plate OD (outer edge)</td><td class="sym">OD_ann</td><td class="formula">D + 2×proj_outside</td><td class="value">87600.0</td><td>mm</td></tr>
@@ -2512,17 +2517,17 @@
     </div>
   </div>
 
-  <!-- 5.5 API-620 Spacing Comparison -->
+  <!-- 5.5 Spacing Comparison -->
   <div class="section">
     <div class="section-header"><div class="section-num">5</div><h2>5.5 Maximum Stiffener Spacing – Code Comparison</h2></div>
     <div class="section-body">
       <table class="result-table">
         <thead><tr><th>Code / Method</th><th>Formula</th><th>Max Spacing (mm)</th><th>Reference</th></tr></thead>
         <tbody id="stiffCodeBody">
-    <tr><td class="label">API-620 Section 5.10.6</td>
+    <tr><td class="label">Max Stiffener Spacing</td>
         <td class="formula">600·(t_in)·(100·t_in/(D_ft))^1.5 [converted to mm]</td>
         <td class="value">3752.8</td>
-        <td>API-620 §5.10.6</td></tr>
+        <td>§5.10.6</td></tr>
     <tr><td class="label" style="color:var(--warn)"><strong>User-specified spacing</strong></td>
         <td class="formula">Input (Tab inputs above)</td>
         <td class="value" style="color:var(--warn)">2518</td>
@@ -2713,29 +2718,29 @@
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <div class="page" id="page5">
   <div class="formula-section">
-    <h3>§ 1 — Allowable Stress Formulae (API-620 Appendix Q / EN 14620)</h3>
+    <h3>§ 1 — Allowable Stress Formulae (EN 14620 / Appendix Q)</h3>
     <div class="formula-grid">
       <div class="formula-card">
         <div class="formula-name">Normal Operating Allowable Stress (Sd)</div>
-        <div class="formula-ref">API-620 Appendix Q / EN 14620 Cl. 3.3.2 | Weld Metal</div>
+        <div class="formula-ref">EN 14620 Cl. 3.3.2 | Weld Metal</div>
         <div class="formula-eq">Sd = min( 0.67·Fy ,  0.43·UTS )</div>
         <div class="formula-desc">Fy = Yield strength of weld metal (MPa); UTS = Tensile strength of weld metal (MPa)</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Hydrotest Allowable Stress (Sht)</div>
-        <div class="formula-ref">API-620 Cl. 6.2.2 | Weld Metal</div>
+        <div class="formula-ref">EN 14620 Cl. 6.2.2 | Weld Metal</div>
         <div class="formula-eq">Sht = min( 0.85·Fy ,  0.6·UTS ,  340 MPa )</div>
         <div class="formula-desc">Applied during hydrostatic test condition only</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Seismic Allowable Stress (OBE / SSE)</div>
-        <div class="formula-ref">API-620 Appendix Q / EN 14620</div>
+        <div class="formula-ref">EN 14620 / Appendix Q</div>
         <div class="formula-eq">S_seis = min( 1.33·Sd ,  0.8·Fy )</div>
         <div class="formula-desc">Used for both OBE (OLE) and SSE (CLE) load combinations</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Internal Pressure Design Stress</div>
-        <div class="formula-ref">API-620 Cl. 3.3.1</div>
+        <div class="formula-ref">EN 14620 Cl. 3.3.1</div>
         <div class="formula-eq">Sd (base) = min( 0.67·Fy_base ,  0.43·UTS_base )</div>
         <div class="formula-desc">Applies to base metal for pressure loading</div>
       </div>
@@ -2743,17 +2748,17 @@
   </div>
 
   <div class="formula-section">
-    <h3>§ 2 — Shell Thickness Formulae (EN 14620 / API-620 Cl. 5.3)</h3>
+    <h3>§ 2 — Shell Thickness Formulae (EN 14620 Cl. 5.3)</h3>
     <div class="formula-grid">
       <div class="formula-card">
         <div class="formula-name">Design Shell Thickness (td)</div>
-        <div class="formula-ref">API-620 Clause 5.3.2 — Hydrostatic + Pressure</div>
+        <div class="formula-ref">EN 14620 Clause 5.3.2 — Hydrostatic + Pressure</div>
         <div class="formula-eq">td = [ 4.9 · D · (Hd + Pi) · G ] / (Sd · E) + CA</div>
         <div class="formula-desc">D = Inside dia. (m); Hd = Liquid head height (m); Pi = Internal pressure (m barg); G = Specific gravity; E = Joint efficiency; CA = Corrosion allowance (mm)</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Hydrotest Shell Thickness (tt)</div>
-        <div class="formula-ref">API-620 Clause 6.2 — Hydrotest Condition</div>
+        <div class="formula-ref">EN 14620 Clause 6.2 — Hydrotest Condition</div>
         <div class="formula-eq">tt = [ D_m × (98 × (ρw/1000) × (Ht − 0.3) + Pt) ] / (Sht × 20)</div>
         <div class="formula-desc">Ht = Hydrotest liquid level (m); Pt = Test pressure (m barg); ρw = Water density (kg/m³)</div>
       </div>
@@ -2773,17 +2778,17 @@
   </div>
 
   <div class="formula-section">
-    <h3>§ 3 — Seismic Natural Period (EN 1998-4 / API-620 App. Q, Section Q.3)</h3>
+    <h3>§ 3 — Seismic Natural Period (EN 1998-4 / App. Q, Section Q.3)</h3>
     <div class="formula-grid">
       <div class="formula-card">
         <div class="formula-name">Impulsive Natural Period (Ti)</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-4</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-4</div>
         <div class="formula-eq">Ti = Ci · Hf · √(ρ · R / (E · s_corr))</div>
         <div class="formula-desc">Ci = Period coefficient from EN 1998-4 Table A.2 (interpolated); Hf = Fill height - Max Normal Operating Level (m); ρ = Liquid density (kg/m³); R = Tank radius (m); E = Elastic modulus (Pa); s_corr = HSEPL corroded thickness = [Σ(t·W) − (H_tank−H_fill)·0.01] / H_fill (m) — per Excel Sheet 3 row 35</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Convective Natural Period (Tc)</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-5</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-5</div>
         <div class="formula-eq">Tc = (0.578 / √[tanh(3.68·Hd/D)]) × 1.8 × √D</div>
         <div class="formula-desc">D = Tank inner diameter (m); Hd = Design liquid level (m). Tc typically 5–15 s for large tanks.</div>
       </div>
@@ -2791,29 +2796,29 @@
   </div>
 
   <div class="formula-section">
-    <h3>§ 4 — Effective Liquid Masses (EN 1998-4 / API-620 App. Q, Section Q.3.2)</h3>
+    <h3>§ 4 — Effective Liquid Masses (EN 1998-4 / App. Q, Section Q.3.2)</h3>
     <div class="formula-grid">
       <div class="formula-card">
         <div class="formula-name">Impulsive Effective Weight (Wi) — Tall Tank D/H ≥ 1.333</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-8a</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-8a</div>
         <div class="formula-eq">Wi = [ tanh(0.866·D/Hd) / (0.866·D/Hd) ] · Wp</div>
         <div class="formula-desc">Wp = Total weight of liquid contents (N)</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Impulsive Effective Weight (Wi) — Squat Tank D/H &lt; 1.333</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-8b</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-8b</div>
         <div class="formula-eq">Wi = (1 − 0.218·D/Hd) · Wp</div>
         <div class="formula-desc">Height of Wi from base: Xia = (0.5 − 0.094·D/Hd)·Hd</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Impulsive C.O.G. Height (Xia) — Tall Tank</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-10a</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-10a</div>
         <div class="formula-eq">Xia = 0.375 · Hd</div>
         <div class="formula-desc">Applied when D/H ≥ 1.333</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Convective Effective Weight (Wc)</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-9</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-9</div>
         <div class="formula-eq">Wc = 0.23·(D/Hd)·tanh(3.67·Hd/D) · Wp</div>
         <div class="formula-desc">Height of Wc from base: Xc = [1 − (cosh(3.67·Hd/D)−1) / ((3.67·Hd/D)·sinh(3.67·Hd/D))] · Hd</div>
       </div>
@@ -2821,17 +2826,17 @@
   </div>
 
   <div class="formula-section">
-    <h3>§ 5 — Seismic Forces &amp; Overturning Moment (EN 1998-4 / API-620 App. Q, Q.3.3)</h3>
+    <h3>§ 5 — Seismic Forces &amp; Overturning Moment (EN 1998-4 / App. Q, Q.3.3)</h3>
     <div class="formula-grid">
       <div class="formula-card">
         <div class="formula-name">Total Seismic Base Shear (V)</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-14</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-14</div>
         <div class="formula-eq">V = √[ (Ai·(Ws+Wi+Wr+Wf))² + (Ac·Wc)² ]</div>
         <div class="formula-desc">Ai = Impulsive spectral acceleration; Ac = Convective spectral acceleration; Ws = Shell weight; Wr = Roof weight; Wf = Bottom plate weight (all in N)</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Ringwall Overturning Moment (Mrw)</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-15</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-15</div>
         <div class="formula-eq">Mrw = √[ (Ai·(Wi·Xia+Ws·Xs+Wr·Xr))² + (Ac·Wc·Xc)² ]</div>
         <div class="formula-desc">Xs = Shell C.O.G. height; Xr = Roof C.O.G. height; Xia = Impulsive liquid C.O.G.; Xc = Convective liquid C.O.G. (all in m)</div>
       </div>
@@ -2839,44 +2844,44 @@
   </div>
 
   <div class="formula-section">
-    <h3>§ 6 — Anchorage &amp; Shell Compression (EN 14620 / API-620 App. Q, Q.3.4)</h3>
+    <h3>§ 6 — Anchorage &amp; Shell Compression (EN 14620 / App. Q, Q.3.4)</h3>
     <div class="formula-grid">
       <div class="formula-card">
         <div class="formula-name">Shell Dead-Weight Force per Unit Length (wt)</div>
-        <div class="formula-ref">API-620 Appendix Q</div>
+        <div class="formula-ref">Appendix Q</div>
         <div class="formula-eq">wt = Ws / (π·D) + wrs</div>
         <div class="formula-desc">wrs = Roof load distributed onto shell (N/m)</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Resisting Uplift Force (wa)</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-18</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-18</div>
         <div class="formula-eq">wa = min[ 99·ta·√(FyA·ρ/1000·(1−0.4Av)·Hd) ,
      201.1·Hd·D·ρ/1000·(1−0.4Av) ]</div>
         <div class="formula-desc">ta = Annular plate thickness (mm); FyA = Annular plate yield strength (MPa); Av = Vertical seismic coefficient</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Anchorage Ratio (J)</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-17</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-17</div>
         <div class="formula-eq">J = Mrw / [ (wt·(1−0.4Av) + wa − 0.4·wint) · D² ]</div>
         <div class="formula-desc">J ≤ 0.785 → Self-anchored (no uplift); J &gt; 1.54 → Mechanically anchored required</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Actual Shell Compression (σc)</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-19 / Q-20</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-19 / Q-20</div>
         <div class="formula-eq">σc = (wt·(1+0.4Av) + 1.273·Mrw/D²) / (1000·ts)   [Anchored]
 σc = ((wt·(1+0.4Av)+wa)/(0.607−0.18667·J^2.3)−wa) / (1000·ts)   [J&gt;0.785]</div>
         <div class="formula-desc">ts = Bottom shell course thickness (corroded, mm); Must satisfy σc &lt; Fc</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Allowable Shell Compression (Fc) — A ≥ 44</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-21a</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-21a</div>
         <div class="formula-eq">Fc = min( 0.5·Fy ,  83·ts/D )    [when A ≥ 44]
 A = ρ/1000 · Hd · D² / ts²</div>
         <div class="formula-desc">A = Geometric-loading parameter; Fy = Bottom shell yield strength (MPa)</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Allowable Shell Compression (Fc) — A &lt; 44</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-21b</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-21b</div>
         <div class="formula-eq">Fc = min( 0.5·Fy ,  83·ts/(2.5·D) + 7.5·√(G·H) )   [A&lt;44]</div>
         <div class="formula-desc">G = Specific gravity of liquid; H = Design liquid level (m)</div>
       </div>
@@ -2884,52 +2889,52 @@ A = ρ/1000 · Hd · D² / ts²</div>
   </div>
 
   <div class="formula-section">
-    <h3>§ 7 — Dynamic Hoop Force Formulae (EN 14620 / API-620 App. Q, Q.3.5)</h3>
+    <h3>§ 7 — Dynamic Hoop Force Formulae (EN 14620 / App. Q, Q.3.5)</h3>
     <div class="formula-grid">
       <div class="formula-card">
         <div class="formula-name">Hydrostatic Hoop Force (Ps)</div>
-        <div class="formula-ref">API-620 Appendix Q</div>
+        <div class="formula-ref">Appendix Q</div>
         <div class="formula-eq">Ps = ρ × 4.9 × Y × D    [N/m]</div>
         <div class="formula-desc">Y = Height from bottom to course level (m); D = Inner diameter (m); ρ = Liquid density (kg/m³ × 10⁻³)</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Impulsive Hoop Pressure (Pi) — D/H ≥ 1.333</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-23a</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-23a</div>
         <div class="formula-eq">Pi = 8.48×10³·Ai·G·D·Hd·[(Y/Hd)−½·(Y/Hd)²]·tanh(0.866·D/Hd)</div>
         <div class="formula-desc">Ai = Impulsive spectral coefficient; G = Specific gravity</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Impulsive Hoop Pressure (Pi) — Y &lt; 0.75D</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-23b</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-23b</div>
         <div class="formula-eq">Pi = 5.22×10³·Ai·G·D²·[(Y/0.75D)−½·(Y/0.75D)²]</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Convective Hoop Pressure (Pc)</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-24</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-24</div>
         <div class="formula-eq">Pc = 1.85·Ac·G·D²·cosh(3.68·(Hd−Y)/D) / cosh(3.68·Hd/D) × 10³</div>
         <div class="formula-desc">Ac = Convective spectral coefficient</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Vertical Seismic Hoop Pressure (Pv)</div>
-        <div class="formula-ref">API-620 Appendix Q</div>
+        <div class="formula-ref">Appendix Q</div>
         <div class="formula-eq">Pv = Ps × Av</div>
         <div class="formula-desc">Av = Vertical seismic design coefficient</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Combined Pressure by RSS Method (PRSS)</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-25</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-25</div>
         <div class="formula-eq">PRSS = Ps + √(Pi² + Pc² + Pv²)    [N/m]</div>
         <div class="formula-desc">Required thickness check: TRSS = PRSS / S_allow; must be ≤ t_adopted</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Max Horizontal Hoop Force (Ph)</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-26</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-26</div>
         <div class="formula-eq">Ph_max = (Ps + Pi + Pc + 0.4·Pv) × 10⁻³    [N/mm]</div>
         <div class="formula-desc">Th = Ph_max / S_allow (required thickness by horizontal check)</div>
       </div>
       <div class="formula-card">
         <div class="formula-name">Max Vertical Hoop Force (Pv_max)</div>
-        <div class="formula-ref">API-620 Appendix Q, Eq. Q-27</div>
+        <div class="formula-ref">Appendix Q, Eq. Q-27</div>
         <div class="formula-eq">Pv_max = (Ps + Pv + 0.3·(Pi + Pc)) × 10⁻³    [N/mm]</div>
         <div class="formula-desc">Tv = Pv_max / S_allow (required thickness by vertical check)</div>
       </div>
@@ -3029,8 +3034,8 @@ BC1-BC3: 0.6 + 18/Ω² − 0.3/Ω³</div>
         <div class="formula-desc">Must satisfy: σ_theta,Ed &lt; σ_theta,Rd; where σ_theta,Ed = Pe · r / t</div>
       </div>
       <div class="formula-card">
-        <div class="formula-name">API-620 Maximum Stiffener Spacing</div>
-        <div class="formula-ref">API-620 Section 5.10.6</div>
+        <div class="formula-name">Maximum Stiffener Spacing</div>
+        <div class="formula-ref">Max Stiffener Spacing</div>
         <div class="formula-eq">L_max = 600·t_in·(100·t_in / (D_ft))^1.5  [converted to mm]</div>
         <div class="formula-desc">t_in = thickness in inches; D_ft = diameter in feet. Alternate empirical check.</div>
       </div>
@@ -3056,7 +3061,7 @@ BC1-BC3: 0.6 + 18/Ω² − 0.3/Ω³</div>
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <div class="page" id="page6">
   <div class="info-banner">
-    ℹ Capacity check per <strong>API-620 App. Q / 1A_Capacity</strong>. Verifies tank height against seismic freeboard and computes net working and stored capacities.
+    ℹ Capacity check per <strong>App. Q / 1A_Capacity</strong>. Verifies tank height against seismic freeboard and computes net working and stored capacities.
     Tank diameter and height are linked from <strong>Tab 1 – General Information</strong>.
   </div>
 
@@ -4273,7 +4278,7 @@ async function exportWord() {
 // ─── PAGE 1: General – Allowable Stresses ──────────────────────────────────
 function computeGeneral() {
   const FY = g('FY_weld'), UTS = g('UTS_weld');
-  // Per API-620 Appendix Q / EN 14620 as used in Excel:
+  // Per Appendix Q / EN 14620 as used in Excel:
   // Normal operating: Min(0.67·Fy, 0.43·UTS)   [Cl. 3.3.2]
   // Hydrotest:        Min(0.85·Fy, 0.6·UTS, 340)  [Cl. 6.2.2]
   // Seismic OBE/OLE:  Min(1.33·Sd, 0.8·Fy)
@@ -4349,6 +4354,51 @@ function buildCoursesTable() {
       <td class="calc-val" id="cWt_${i}">—</td>`;
     tbody.appendChild(tr);
   });
+}
+
+// ─── Dynamic Shell Course management (Tab 2) ────────────────────────────────
+// Rebuilds the shell-course tbody from arrays of widths + adopted thicknesses so
+// row indices / element IDs always stay sequential (0..n-1). Calculated cells are
+// filled in by computeThickness(), which reads every .cw / .cadopt input.
+function _buildCourseRow(i, width, adopt) {
+  return `<tr>
+      <td class="label">Course ${i + 1}</td>
+      <td><input class="cw" data-idx="${i}" type="number" step="0.5" value="${width}" oninput="computeThickness()"></td>
+      <td class="calc-val" id="cHd_${i}">—</td>
+      <td class="calc-val" id="cHt_${i}">—</td>
+      <td class="req-val" id="ctd_${i}">—</td>
+      <td class="req-val" id="ctt_${i}">—</td>
+      <td class="calc-val" id="ctReq_${i}">—</td>
+      <td><input class="cadopt" data-idx="${i}" type="number" step="1" value="${adopt}" oninput="computeThickness()"></td>
+      <td class="calc-val" id="cWt_${i}">—</td></tr>`;
+}
+
+function _rebuildCourses(widths, adopted) {
+  const body = document.getElementById('coursesBody');
+  if (!body) return;
+  body.innerHTML = widths.map((w, i) => _buildCourseRow(i, w, adopted[i])).join('');
+  const cc = document.getElementById('courseCount');
+  if (cc) cc.textContent = widths.length;
+  computeThickness();
+}
+
+function addCourse() {
+  const widths  = [...document.querySelectorAll('.cw')].map(el => el.value);
+  const adopted = [...document.querySelectorAll('.cadopt')].map(el => el.value);
+  // New course defaults: width 0 (inactive until user sets it), adopted = tmin or last value
+  const lastAdopt = adopted.length ? adopted[adopted.length - 1] : (g('tmin') || 10);
+  widths.push('0');
+  adopted.push(lastAdopt);
+  _rebuildCourses(widths, adopted);
+}
+
+function deleteCourse() {
+  const widths  = [...document.querySelectorAll('.cw')].map(el => el.value);
+  const adopted = [...document.querySelectorAll('.cadopt')].map(el => el.value);
+  if (widths.length <= 1) { alert('At least one shell course is required.'); return; }
+  widths.pop();
+  adopted.pop();
+  _rebuildCourses(widths, adopted);
 }
 
 function computeThickness() {
@@ -5689,7 +5739,7 @@ function computeStiffeners() {
   const ok_warm = sigma_Ed_warm < sigma_Rd;
   const ok_cool = sigma_Ed_cool < sigma_Rd;
 
-  // API-620 max spacing formula (Section 5.10.6):
+  // Max spacing formula (Section 5.10.6):
   // L_max_API = 600 * (t_in) * (100*t_in / (D_in/12))^1.5  [converted to mm]
   // where t_in = t_eff/25.4  (inches),  D_in = D_mm/25.4 (inches diameter)
   const t_in  = t_eff / 25.4;
@@ -5759,10 +5809,10 @@ function computeStiffeners() {
 
   // ── Code comparison table ─────────────────────────────────
   document.getElementById('stiffCodeBody').innerHTML = `
-    <tr><td class="label">API-620 Section 5.10.6</td>
+    <tr><td class="label">Max Stiffener Spacing</td>
         <td class="formula">600·(t_in)·(100·t_in/(D_ft))^1.5 [converted to mm]</td>
         <td class="value">${isFinite(L_max_API_mm) ? L_max_API_mm.toFixed(1) : '—'}</td>
-        <td>API-620 §5.10.6</td></tr>
+        <td>§5.10.6</td></tr>
     <tr><td class="label">Shell Job / Opal Job Method</td>
         <td class="formula">√(t/D)·(2.6·E·t² / (Pe,warm · SF · D) + 0.45·D)×10³</td>
         <td class="value">${isFinite(L_max_shell_mm) ? L_max_shell_mm.toFixed(1) : '—'}</td>
@@ -7047,7 +7097,7 @@ function computeAnnularPlate() {
     <tr><td class="label">Radial Width (Code minimum)</td><td class="sym">w_code</td><td class="formula">500 mm (EN14620-2 Cl.5.2.1.1.1)</td><td class="value">${w_code}</td><td>mm</td></tr>
     <tr><td class="label">Radial Width (User input)</td><td class="sym">w_user</td><td class="formula">User input</td><td class="value">${w_user}</td><td>mm</td></tr>
     <tr><td class="label">Bottom Plate to Annular Plate Lap</td><td class="sym">lap</td><td class="formula">min 5 × t_ann (API-650)</td><td class="value">${lap}</td><td>mm</td></tr>
-    <tr><td class="label">Min Projection Outside Shell</td><td class="sym">proj</td><td class="formula">2″ per API-620 Q-3.5.1</td><td class="value">${proj}</td><td>mm</td></tr>
+    <tr><td class="label">Min Projection Outside Shell</td><td class="sym">proj</td><td class="formula">2″ minimum</td><td class="value">${proj}</td><td>mm</td></tr>
     <tr style="background:rgba(0,201,167,0.07)"><td class="label">Calculated total annular plate width (EN-14620)</td><td class="sym">w_calc</td><td class="formula">w_user + lap + proj + t_shell = 600+60+60+24.9</td><td class="value">${(w_user+lap+proj+ts).toFixed(1)}</td><td>mm (Excel row 39: 744.9)</td></tr>
     <tr style="background:rgba(0,201,167,0.07)"><td class="label">User Input for Annular Plate total width</td><td class="sym">w_user</td><td class="formula">User input (Excel row 40)</td><td class="value">${w_user.toFixed(0)}</td><td>mm (Excel: 800mm)</td></tr>
     <tr><td class="label">Annular Plate OD (outer edge)</td><td class="sym">OD_ann</td><td class="formula">D + 2×proj_outside</td><td class="value">${ann_OD_mm.toFixed(1)}</td><td>mm</td></tr>
